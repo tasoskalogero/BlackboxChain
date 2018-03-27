@@ -1,0 +1,24 @@
+<div class="container">
+  <h3>Available datasets</h3>
+  <div>
+    <ul id="grouplist" class="list-group">
+      <li style="cursor: pointer" class="list-group-item"
+          *ngFor="let dataset of fetchedDatasets"
+          [ngClass]="{'active': dataset == selectedDataset}"
+          (click)="setSelected(dataset)">
+        <strong>Dataset name:</strong> {{dataset.datasetName}}
+        <br/>
+        <strong>Dataset description:</strong> {{dataset.datasetDescription}}
+        <br/>
+        <strong>BigchainDB TxID:</strong> {{dataset.bcdbTxID}}
+        <br/>
+        <strong>Cost (ETH): </strong> {{dataset.cost}}
+        <br/>
+      </li>
+    </ul>
+  </div>
+  <p>
+    <button type="button" class="btn btn-link" (click)="getDatasets()">Refresh</button>
+  </p>
+</div>
+

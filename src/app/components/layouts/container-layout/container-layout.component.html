@@ -1,0 +1,31 @@
+<div class="container">
+    <h3>Available containers</h3>
+    <p>Make sure to encrypt your data with the correct public key from the selected container.</p>
+    <div>
+      <ul id="grouplist" class="list-group">
+        <li style="cursor: pointer" class="list-group-item"
+            *ngFor="let container of fetchedContainers"
+            [ngClass]="{'active': container == selectedContainer}"
+            (click)="container.running && setSelected(container)">
+            <strong>ID:</strong> {{container.dockerID}}
+            <br/>
+            <strong>Public key:</strong>
+          <button type="button" class="btn btn-light" (click)="downloadPublicKey(container.dockerID)">Download</button>
+            <br/>
+            <strong>Cost (ETH): </strong> {{container.cost}}
+            <br/>
+            <div style="display:inline;"><strong>State:</strong></div>
+            <div *ngIf="container.running" style="color: limegreen; display:inline;">
+              Up
+            </div>
+            <div *ngIf="!container.running" style="color: red;display:inline;">
+              Exited
+            </div>
+        </li>
+      </ul>
+    </div>
+    <p>
+    <button type="button" class="btn btn-link" (click)="getContainers()">Refresh</button>
+    </p>
+</div>
+

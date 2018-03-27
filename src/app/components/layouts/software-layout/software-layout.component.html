@@ -1,0 +1,19 @@
+<div class="container">
+  <h3> Available software</h3>
+  <div>
+    <ul id="grouplist" class="list-group">
+      <li style="cursor: pointer" class="list-group-item" *ngFor="let software of fetchedSoftware"
+          [ngClass]="{'active': software == selectedSoftware}"
+          (click)="setSelected(software)">
+          Software URL: <strong>{{software.ipfsAddress}}</strong>
+          <br/>
+          Filename: <strong>{{software.filename}}</strong>
+          <br/>
+          Parameters description: {{software.paramType}}
+          <br/>
+          Description: {{software.description}}
+          <br/>
+      </li>
+    </ul>
+  </div>
+</div>

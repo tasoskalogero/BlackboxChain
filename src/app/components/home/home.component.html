@@ -1,0 +1,87 @@
+<div class="jumbotron">
+  <h1 class="display-4">{{title}}</h1>
+  <p class="lead">An application for resource-intensive computations using Ethereum.</p>
+  <hr class="my-4">
+  <p>A secure resource-intensive computation managed by Ethereum smart contracts and executed on Docker containers.</p>
+
+  <h3>Software provider</h3>
+  <p>From the menu on top, click on the <strong>Software</strong> tab and enter the details. Then click <strong>Save</strong>
+  to make your software available.
+  </p>
+  Required:
+  <ul>
+  <li>
+      Filename
+  </li>
+  <li>
+    IPFS address
+  </li>
+  <li>
+    Input parameter description
+  </li>
+    <li>
+      Software description
+    </li>
+  </ul>
+
+  <h3>Data provider</h3>
+  <p>From the menu on top, click on the <strong>Datasets</strong> tab and enter the details. Then click <strong>Save</strong>
+    make your dataset available for purchase.
+  </p>
+    Required:
+  <ul>
+    <li>
+      The dataset file encrypted with the public key of the container that will perform the computation.
+      <br/>
+      You can download the public key of a container on the <strong>Computation</strong> page at the available containers.
+    </li>
+    <li>
+      Name of the dataset
+    </li>
+    <li>
+      Description of the dataset
+    </li>
+    <li>
+      Cost in Ether
+    </li>
+  </ul>
+
+  <h3>Container provider</h3>
+
+  <p>From the menu on top, click on the <strong>Containers</strong> tab and enter the details. Then click <strong>Save</strong>
+    to make your docker container available.</p>
+
+  Required:
+  <ul>
+    <li>
+      Docker container ID
+    </li>
+    <li>
+      Public key of docker
+    </li>
+    <li>
+      Cost in Ether
+    </li>
+  </ul>
+
+  <h3>Computation</h3>
+  <p>From the menu on top, click on the <strong>Computation</strong> tab and then:</p>
+  <ol>
+    <li>
+      Upload your public key. It will be used by the container to encrypt the result.
+    </li>
+    <li>
+      Select the algorithm you want to run.
+    </li>
+    <li>
+      Select the datase you want to use.
+    </li>
+    <li>
+      Select the container that will perform the computation.
+    </li>
+  </ol>
+  <p>Click <strong>Run</strong> in order to start the computation.</p>
+
+  <h4>Result</h4>
+  The result is an IPFS address and it will be displayed in the <strong>Log</strong> area at the bottom of the <strong>Computation</strong> page.
+</div>
