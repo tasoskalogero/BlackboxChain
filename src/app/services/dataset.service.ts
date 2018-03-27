@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import {Web3Service} from '../util/web3.service';
 import dataset_repository from '../../../build/contracts/DatasetRepository.json';
-import {BigchaindbService} from './bigchaindb.service';
 import Web3 from 'web3';
 import {LoggerService} from './logger.service';
 import {Dataset} from '../models/models';
-import {postDataset} from "../rest-api/bigchaindb_store";
+import {BdbService} from './bdb.service';
 
 @Injectable()
 export class DatasetService {
@@ -14,7 +13,7 @@ export class DatasetService {
   private currentAccount: string;
 
   constructor(private web3Service: Web3Service,
-              private bigchainDBService: BigchaindbService,
+              private bdbService: BdbService,
               private loggerService: LoggerService) {
     this.web3 = this.web3Service.getWeb3();
     web3Service.accountsObservable.subscribe(() => {
@@ -55,23 +54,11 @@ export class DatasetService {
     return datasets;
   }
 
-  // async storeOnDB(datasetContents, dsName: string, dsDescription: string, cost: string) {
-  //   let txID = await postDataset(datasetContents, dsName, dsDescription, cost);
-  //   return txID;
-    // return new Promise (async resolve => {
-    //   await this.bigchainDBService.createTransaction(datasetContents, dsName, dsDescription, cost)
-    //     .subscribe(res => {
-    //       console.log(res);
-    //       resolve(res['txID'])
-    //     });
-    // });
-  // }
-
   async addDataset(datasetFile: File, dsName: string, dsDescription: string, cost: string) {
     let encryptedDatasetContents = await this.readFile(datasetFile);
 
 
-    let txID = await postDataset(encryptedDatasetContents, dsName, dsDescription, this.web3.utils.fromWei(cost, 'ether'));
+    let txID = await this.bdbService.createNewDataset(encryptedDatasetContents, dsName, dsDescription, this.web3.utils.fromWei(cost, 'ether'));
     this.loggerService.add('Dataset stored on BigchainDB - ' + txID );
     let deployedDatasetRepository = await this.DatasetRepository.deployed();
 

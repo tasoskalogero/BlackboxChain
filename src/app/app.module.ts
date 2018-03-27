@@ -14,7 +14,6 @@ import { LoggerComponent } from './components/logger/logger.component';
 import {LoggerService} from './services/logger.service';
 import { DatasetComponent } from './components/dataset/dataset.component';
 import {DatasetService} from './services/dataset.service';
-import {BigchaindbService} from './services/bigchaindb.service';
 import { HomeComponent } from './components/home/home.component';
 import { ContainerComponent } from './components/container/container.component';
 import {ComputationLayoutComponent} from './components/layouts/computation-layout/computation-layout.component';
@@ -24,6 +23,7 @@ import {DatasetLayoutComponent} from './components/layouts/dataset-layout/datase
 import {SoftwareLayoutComponent} from './components/layouts/software-layout/software-layout.component';
 import {ContainerLayoutComponent} from './components/layouts/container-layout/container-layout.component';
 import {CommunicationService} from './services/communication.service';
+import {BdbService} from './services/bdb.service';
 
 
 
@@ -49,7 +49,7 @@ import {CommunicationService} from './services/communication.service';
     HttpClientModule,
     AppRoutingModule
   ],
-  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BigchaindbService],
+  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BdbService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
