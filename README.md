@@ -1,8 +1,10 @@
+
 # truffle-angular-app
 
 #### Start the test network
 * `truffle dev`
-#### Compile and migrate the contracts: 
+
+#### Compile and migrate the contracts
 * `compile && migrate`
 
 #### Run the app using Angular CLI:
