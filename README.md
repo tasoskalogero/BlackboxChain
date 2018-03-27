@@ -1,5 +1,6 @@
 
-# truffle-angular-app
+
+# BlackboxChain
 
 #### Start the test network
 * `truffle dev`
@@ -8,7 +9,8 @@
 * `compile && migrate`
 
 #### Run the app using Angular CLI:
-* `ng serve --open`
+* First run  `npm install`
+* Then `ng serve --open`
 
 #### Software provider
 
