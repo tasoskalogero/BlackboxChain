@@ -29,7 +29,7 @@ export class DatasetService {
       })
   }
 
-  async getDatasets() {
+  async getDatasetFromDB() {
     let datasets = [];
     let deployedDatasetRepository = await this.DatasetRepository.deployed();
     try {
@@ -37,14 +37,17 @@ export class DatasetService {
       console.log("DatasetIDs " + datasetIDs);
 
       for(let i = 0; i < datasetIDs.length; ++i) {
-        let receivedDataset = await deployedDatasetRepository.getDatasetByID.call(datasetIDs[i]);
+        let datasetInfo = await deployedDatasetRepository.getDatasetByID.call(datasetIDs[i]);
+        let id = datasetInfo[0];
+        let bdbId = datasetInfo[1];
 
-        let datasetName = receivedDataset[0];
-        let datasetDescription = receivedDataset[1];
-        let cost = this.web3.utils.fromWei(receivedDataset[2].toNumber().toString(), 'ether');
-        let txID = receivedDataset[3];
+        let asset = await this.bdbService.queryDB(bdbId);
 
-        let datasetToAdd = new Dataset(datasetIDs[i],datasetName, datasetDescription, cost, txID);
+        let datasetName = asset.name;
+        let datasetDescription = asset.description;
+        let cost = this.web3.utils.fromWei(asset.cost, 'ether');
+
+        let datasetToAdd = new Dataset(id, datasetName, datasetDescription, cost);
         datasets.push(datasetToAdd);
       }
     } catch(e) {
@@ -56,13 +59,12 @@ export class DatasetService {
 
   async addDataset(datasetFile: File, dsName: string, dsDescription: string, cost: string) {
     let encryptedDatasetContents = await this.readFile(datasetFile);
+    let txId = await this.bdbService.createNewDataset(encryptedDatasetContents, dsName, dsDescription, cost);
+    this.loggerService.add('Dataset stored on BigchainDB - ' + txId );
 
-
-    let txID = await this.bdbService.createNewDataset(encryptedDatasetContents, dsName, dsDescription, this.web3.utils.fromWei(cost, 'ether'));
-    this.loggerService.add('Dataset stored on BigchainDB - ' + txID );
     let deployedDatasetRepository = await this.DatasetRepository.deployed();
 
-    return await deployedDatasetRepository.addNewDataset(dsName, dsDescription, cost, txID, {from: this.currentAccount});
+    return await deployedDatasetRepository.addNewDataset(txId, {from: this.currentAccount});
   }
 
   readFile(dataFile) {

@@ -13,10 +13,10 @@ export class BdbService {
       const owner = new bcdb_driver.Ed25519Keypair();
 
       let encodedDataset = btoa(datasetContent);
-      console.log('Posting ' + encodedDataset + ' ' + dsName + ' ' + dsDescr + ' ' + cost);
+      console.log('Posting dataset: ' + encodedDataset + ' ' + dsName + ' ' + dsDescr + ' ' + cost);
 
-      let asset = {contents: encodedDataset, type: "dataset"};
-      let metadata = {name: dsName, description: dsDescr, cost: cost};
+      let asset = {contents: encodedDataset, name: dsName, description: dsDescr, cost: cost};
+      let metadata = null;
 
       const tx = bcdb_driver.Transaction.makeCreateTransaction(
           asset,
@@ -54,7 +54,7 @@ export class BdbService {
       return retrievedTx.id;
   }
 
-  async getContainerAsset(bdbId) {
+  async queryDB(bdbId) {
       const conn = new bcdb_driver.Connection(this.apiUrl);
       let assets = await conn.searchAssets(bdbId);
       console.log('[CONTAINER on BDB]',assets[0].data);

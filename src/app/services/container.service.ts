@@ -40,7 +40,7 @@ export class ContainerService {
                 let id = containerInfo[0];
                 let bdbId = containerInfo[1];
 
-                let asset = await this.bdbService.getContainerAsset(bdbId);
+                let asset = await this.bdbService.queryDB(bdbId);
                 let containerDockerID = asset.container_ID;
                 let publicKey = asset.pubKey;
                 let cost = this.web3.utils.fromWei(asset.cost, 'ether');

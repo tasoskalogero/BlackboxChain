@@ -4,7 +4,6 @@ export class Dataset {
       public datasetName: string,
       public datasetDescription: string,
       public cost: number,
-      public bcdbTxID: string
   ) { }
 }
 
