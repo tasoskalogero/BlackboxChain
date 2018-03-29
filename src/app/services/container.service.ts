@@ -4,6 +4,7 @@ import container_repository from '../../../build/contracts/ContainerRepository.j
 import Web3 from 'web3';
 import {Container} from '../models/models';
 import {BdbService} from './bdb.service';
+import {LoggerService} from './logger.service';
 
 @Injectable()
 export class ContainerService {
@@ -12,6 +13,7 @@ export class ContainerService {
     private currentAccount: string;
 
     constructor(private bdbService: BdbService,
+                private loggerService: LoggerService,
                 private web3Service: Web3Service) {
 
         this.web3 = this.web3Service.getWeb3();
@@ -46,7 +48,7 @@ export class ContainerService {
                 let cost = this.web3.utils.fromWei(asset.cost, 'ether');
                 let status = asset.status;
 
-                let containerToAdd = new Container(id, containerDockerID, publicKey, status, cost);
+                let containerToAdd = new Container(id, containerDockerID, publicKey, status, cost, bdbId);
                 fetchedContainers.push(containerToAdd);
             }
             return fetchedContainers;
@@ -59,6 +61,9 @@ export class ContainerService {
     async addContainer(containerID: string, publicKey: File, cost: string, status: string) {
         let pubkeyContents = await this.readFile(publicKey);
         let txId = await this.bdbService.createNewContainer(containerID, pubkeyContents, cost, status);
+
+        this.loggerService.add('Container stored on BigchainDB - ' + txId );
+
         let deployedContainerRepository = await this.ContainerRepository.deployed();
         return await deployedContainerRepository.addNewContainer(txId, {from: this.currentAccount});
     }

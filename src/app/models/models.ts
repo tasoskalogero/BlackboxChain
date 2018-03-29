@@ -4,6 +4,7 @@ export class Dataset {
       public datasetName: string,
       public datasetDescription: string,
       public cost: number,
+      public bdbId: string
   ) { }
 }
 
@@ -14,7 +15,8 @@ export class Container {
       public dockerID: string,
       public publicKey: string,
       public running: boolean,
-      public cost: number
+      public cost: number,
+      public bdbId: string
   ) {}
 }
 

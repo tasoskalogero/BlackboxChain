@@ -12,6 +12,8 @@
             <strong>Public key:</strong>
           <button type="button" class="btn btn-light" (click)="downloadPublicKey(container.dockerID)">Download</button>
             <br/>
+            <strong>BigchainDB TxID:</strong> {{container.bdbId}}
+            <br/>
             <strong>Cost (ETH): </strong> {{container.cost}}
             <br/>
             <div style="display:inline;"><strong>State:</strong></div>

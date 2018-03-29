@@ -47,7 +47,7 @@ export class DatasetService {
         let datasetDescription = asset.description;
         let cost = this.web3.utils.fromWei(asset.cost, 'ether');
 
-        let datasetToAdd = new Dataset(id, datasetName, datasetDescription, cost);
+        let datasetToAdd = new Dataset(id, datasetName, datasetDescription, cost, bdbId);
         datasets.push(datasetToAdd);
       }
     } catch(e) {
