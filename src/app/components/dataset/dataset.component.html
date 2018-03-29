@@ -1,11 +1,12 @@
 <div class="container" >
   <h2> Dataset Details</h2>
-  <p>The dataset will be posted on BigchainDB.</p>
+  <br/>
   <form [formGroup]="datasetForm" (ngSubmit)="onSubmit()" novalidate>
     <div class="form-group row">
-      <label for="datasetFile" class="col-sm-3 col-form-label" >Dataset:</label>
+      <!--<label for="datasetFile" class="col-sm-3 col-form-label" >Dataset:</label>-->
       <div class="col-sm-5">
-        <h3>Upload encrypted dataset:</h3>
+        <h3>Encrypted dataset upload:</h3>
+        <p>The dataset will be stored on BigchainDB.</p>
         <input class="btn btn-light" #datasetFileInput id="datasetFile" type="file" (change)="onChange($event)"  />
       </div>
     </div>

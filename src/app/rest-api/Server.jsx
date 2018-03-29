@@ -81,9 +81,10 @@ app.post('/exec/create', (request,res) => {
       "AttachStdout":true
     });
 
+  let path = '/containers/'+containerID+'/exec';
   let post_options = {
     socketPath: '/var/run/docker.sock',
-    path:   '/containers/56c7a068d4b9/exec',
+    path:   path,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
