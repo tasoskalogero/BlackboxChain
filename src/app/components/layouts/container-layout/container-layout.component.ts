@@ -30,7 +30,7 @@ export class ContainerLayoutComponent implements OnInit {
 
   getContainers(): void {
     this.clear();
-    this.containerService.getContainers()
+    this.containerService.getContainersFromDB()
       .then(containers => {
         containers.map(container => this.containerIDToPubKey[container.dockerID] = container.publicKey);
         this.fetchedContainers = containers;

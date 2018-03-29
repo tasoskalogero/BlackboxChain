@@ -4,9 +4,7 @@ contract ContainerRepository {
 
   struct ContainerInfo {
     bytes32 id;
-    string publicKey;
-    uint cost;     //in wei
-    bool status;
+    string bdbId;
     address owner;
   }
 
@@ -15,28 +13,29 @@ contract ContainerRepository {
   mapping(bytes32 => ContainerInfo) containerInventory;
 
 
-  function addNewContainer(bytes32 _id, string _publicKey, uint _cost, bool _status) public
+  function addNewContainer(string _bdbId) public
   returns(bool success) {
 
-    containerIdentifiers.push(_id);
+    bytes32 newId = keccak256(_bdbId, now);
+    containerIdentifiers.push(newId);
 
-    containerInventory[_id].id = _id;
-    containerInventory[_id].publicKey = _publicKey;
-    containerInventory[_id].cost = _cost;
-    containerInventory[_id].status = _status;
-    containerInventory[_id].owner = msg.sender;
+    containerInventory[newId].id = newId;
+    containerInventory[newId].bdbId = _bdbId;
+    containerInventory[newId].owner = msg.sender;
     return true;
   }
 
   function getContainerIDs() public view returns(bytes32[] ids) {
     return containerIdentifiers;
   }
-  function getContainerPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
-    return(containerInventory[_id].cost, containerInventory[_id].owner);
-  }
 
-  function getContainerByID(bytes32 _id) public view returns(bytes32 id, string publicKey, uint cost, bool status) {
-    return (containerInventory[_id].id, containerInventory[_id].publicKey, containerInventory[_id].cost, containerInventory[_id].status);
+  //TODO fix in payment
+//  function getContainerPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
+//    return(containerInventory[_id].cost, containerInventory[_id].owner);
+//  }
+
+  function getContainerByID(bytes32 _id) public view returns(bytes32 id,string bdbId) {
+    return (containerInventory[_id].id, containerInventory[_id].bdbId);
   }
 
 }

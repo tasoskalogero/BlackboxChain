@@ -6,7 +6,7 @@ contract Payment {
         DatasetRepository dsRepo = DatasetRepository(dsAddr);
         ContainerReposigory containerRepo = ContainerReposigory(contAddr);
         var (dsCost, dsOwner) = dsRepo.getDatasetPurchaseInfoByID(dsID);
-        var (contCost, contOwner) = containerRepo.getContainerPurchaseInfoByID(containerID);
+        var (contCost, contOwner) = containerRepo.getContainerPurchaseInfoByID(containerID); //TODO get from BDB
         contOwner.transfer(msg.value - dsCost);
         dsOwner.transfer(msg.value - contCost);
         return contCost + dsCost;

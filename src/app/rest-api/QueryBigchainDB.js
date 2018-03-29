@@ -4,10 +4,10 @@ const conn = new driver.Connection(API_PATH);
 
 let txid = process.argv[2];
 conn.searchAssets(txid)
-  .then(assets => console.log('Found assets:', assets));
+  .then(assets => console.log('Found assets:', assets[0].data));
 
-conn.searchMetadata(txid)
-  .then(assets => console.log('Found metadata:', assets));
+// conn.searchMetadata(txid)
+//   .then(assets => console.log('Found metadata:', assets));
 
 // conn.searchMetadata("\"Print hello\"")
 //   .then(assets => console.log('Found metadata:', assets));
