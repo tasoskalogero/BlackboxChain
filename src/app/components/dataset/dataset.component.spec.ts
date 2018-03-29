@@ -1,17 +1,18 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { DatasetComponent } from './dataset.component';
+import { DatasetComponent } from "./dataset.component";
 
-describe('DatasetComponent', () => {
+describe("DatasetComponent", () => {
   let component: DatasetComponent;
   let fixture: ComponentFixture<DatasetComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ DatasetComponent ]
+  beforeEach(
+    async(() => {
+      TestBed.configureTestingModule({
+        declarations: [DatasetComponent]
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DatasetComponent);
@@ -19,7 +20,7 @@ describe('DatasetComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

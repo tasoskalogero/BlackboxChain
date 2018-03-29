@@ -27,8 +27,9 @@ export class Software{
   constructor(
       public ID: string,
       public filename: string,
-      public ipfsAddress: string,
+      public ipfsHash: string,
       public paramType: string,
       public description: string,
+      public cost: number
   ) { }
 }

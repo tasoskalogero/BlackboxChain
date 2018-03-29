@@ -7,7 +7,7 @@
             *ngFor="let container of fetchedContainers"
             [ngClass]="{'active': container == selectedContainer}"
             (click)="container.running && setSelected(container)">
-            <strong>ID:</strong> {{container.dockerID}}
+            <strong>ContainerID:</strong> {{container.dockerID}}
             <br/>
             <strong>Public key:</strong>
           <button type="button" class="btn btn-light" (click)="downloadPublicKey(container.dockerID)">Download</button>

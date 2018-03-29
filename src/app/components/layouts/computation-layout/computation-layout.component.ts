@@ -80,16 +80,16 @@ export class ComputationLayoutComponent implements OnInit {
 
     this.readFile(this.uploadedUserPubKeyFile)
       .then(pubkey => {
-        this.dockerCommunicationService.execCreate(this.container.dockerID, this.software.ipfsAddress, this.dataset.bcdbTxID, pubkey)
+        this.dockerCommunicationService.execCreate(this.container.dockerID, this.software.ipfsHash, this.dataset.bdbId, pubkey)
           // this.dockerCommunicationService.execCreate(tempContainerID, tempSoftwareAddress, tempDatasetBCDB, pubkey)
           .subscribe( res => {
             console.log("----------- ",res);
             let exec_id = JSON.parse(res[1]).Id;
             this.dockerCommunicationService.execStart(exec_id)
               .subscribe( res => {
-                let ipfsAddr = res[1].replace(/\//g, '');
-                console.log(ipfsAddr);
-                this.loggerService.add(ipfsAddr)
+                let ipfsHash = res[1].replace(/\//g, '');
+                console.log(ipfsHash);
+                this.loggerService.add(ipfsHash)
 
               });
           });

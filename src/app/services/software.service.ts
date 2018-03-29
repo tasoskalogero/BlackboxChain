@@ -1,17 +1,22 @@
-import {Injectable} from '@angular/core';
-import {Web3Service} from '../util/web3.service';
-import software_repository from '../../../build/contracts/SoftwareRepository.json';
-import Web3 from 'web3';
-import {Software} from '../models/models';
+import { Injectable } from "@angular/core";
+import { Web3Service } from "../util/web3.service";
+import software_repository from "../../../build/contracts/SoftwareRepository.json";
+import Web3 from "web3";
+import { Software } from "../models/models";
+import { BdbService } from "./bdb.service";
+import { LoggerService } from "./logger.service";
 
 @Injectable()
-export class SoftwareService  {
-
+export class SoftwareService {
   private currentAccount: string;
   private web3: Web3;
   private SoftwareReposigory: any;
 
-  constructor(private web3Service: Web3Service) {
+  constructor(
+    private bdbService: BdbService,
+    private loggerService: LoggerService,
+    private web3Service: Web3Service
+  ) {
     this.web3 = this.web3Service.getWeb3();
 
     web3Service.accountsObservable.subscribe(() => {
@@ -20,48 +25,67 @@ export class SoftwareService  {
       });
     });
 
-
-    this.web3Service.artifactsToContract(software_repository)
+    this.web3Service
+      .artifactsToContract(software_repository)
       .then(SoftwareRepo => {
         this.SoftwareReposigory = SoftwareRepo;
       });
   }
 
-  async getSoftware()  {
+  async getSoftwareFromDB() {
     let fetchedSoftware = [];
 
     let deployedSoftwareRepository = await this.SoftwareReposigory.deployed();
-    try{
-
+    try {
       let swIDs = await deployedSoftwareRepository.getSoftwareIDs.call();
       console.log("SoftwareIDs " + swIDs);
-      for(let i = 0; i < swIDs.length; ++i) {
-        let receivedSW = await deployedSoftwareRepository.getSoftwareByID.call(swIDs[i]);
+      for (let i = 0; i < swIDs.length; ++i) {
+        let swInfo = await deployedSoftwareRepository.getSoftwareByID.call(
+          swIDs[i]
+        );
+        let id = swInfo[0];
+        let bdbId = swInfo[1];
 
-        let filename = receivedSW[0];
-        let ipfsAddress = receivedSW[1];
-        let paramType = receivedSW[2];
-        let description = receivedSW[3];
+        let asset = await this.bdbService.queryDB(bdbId);
 
-        let softwareToAdd = new Software(swIDs[i],filename, ipfsAddress, paramType, description);
+        let filename = asset.filename;
+        let ipfsHash = asset.ipfsHash;
+        let paramType = asset.paramType;
+        let description = asset.description;
+        let cost = this.web3.utils.fromWei(asset.cost, "ether");
+        let softwareToAdd = new Software(
+          id,
+          filename,
+          ipfsHash,
+          paramType,
+          description,
+          cost
+        );
 
         fetchedSoftware.push(softwareToAdd);
       }
-    }catch(e) {
+    } catch (e) {
       console.log(e);
-      console.error('Software service: Error loading software from blockchain network.');
+      console.error(
+        "Software service: Error loading software from blockchain network."
+      );
     }
     return fetchedSoftware;
   }
 
-  async addSoftware(_filename, _ipfsAddress, _paramType, _description) {
-    console.log('Adding', _filename, _ipfsAddress, _paramType, _description);
-    let deployedSoftwareRepository = await this.SoftwareReposigory.deployed();
-    return await deployedSoftwareRepository.addSoftware(
+  async addSoftware(_filename, _ipfsHash, _paramType, _description, cost) {
+    let txId = await this.bdbService.createNewSoftware(
       _filename,
-      _ipfsAddress,
+      _ipfsHash,
       _paramType,
-      _description, {from: this.currentAccount});
-  }
+      _description,
+      cost
+    );
 
+    this.loggerService.add("Software stored on BigchainDB - " + txId);
+    let deployedSoftwareRepository = await this.SoftwareReposigory.deployed();
+    return await deployedSoftwareRepository.addNewSoftware(txId, {
+      from: this.currentAccount
+    });
+  }
 }

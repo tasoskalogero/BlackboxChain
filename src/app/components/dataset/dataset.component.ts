@@ -3,7 +3,6 @@ import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {DatasetService} from '../../services/dataset.service';
 import {Web3Service} from '../../util/web3.service';
 import {LoggerService} from '../../services/logger.service';
-import {CommunicationService} from '../../services/communication.service';
 
 
 @Component({

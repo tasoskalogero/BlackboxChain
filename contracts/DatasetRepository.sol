@@ -3,7 +3,7 @@ pragma solidity ^0.4.18;
 contract DatasetRepository {
 
   struct DatasetInfo {
-    bytes32 id;     //keccak from (dsName, dsDescription,bcdbTxId)
+    bytes32 id;
     string bdbId;
     address owner;
   }

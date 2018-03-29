@@ -6,9 +6,9 @@
           *ngFor="let dataset of fetchedDatasets"
           [ngClass]="{'active': dataset == selectedDataset}"
           (click)="setSelected(dataset)">
-        <strong>Dataset name:</strong> {{dataset.datasetName}}
+        <strong>name:</strong> {{dataset.datasetName}}
         <br/>
-        <strong>Dataset description:</strong> {{dataset.datasetDescription}}
+        <strong>Description:</strong> {{dataset.datasetDescription}}
         <br/>
         <strong>BigchainDB TxID:</strong> {{dataset.bdbId}}
         <br/>

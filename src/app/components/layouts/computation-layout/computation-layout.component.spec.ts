@@ -1,17 +1,18 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { async, ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { ComputationLayoutComponent } from './computation-layout.component';
+import { ComputationLayoutComponent } from "./computation-layout.component";
 
-describe('ComputationLayoutComponent', () => {
+describe("ComputationLayoutComponent", () => {
   let component: ComputationLayoutComponent;
   let fixture: ComponentFixture<ComputationLayoutComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ComputationLayoutComponent ]
+  beforeEach(
+    async(() => {
+      TestBed.configureTestingModule({
+        declarations: [ComputationLayoutComponent]
+      }).compileComponents();
     })
-    .compileComponents();
-  }));
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ComputationLayoutComponent);
@@ -19,7 +20,7 @@ describe('ComputationLayoutComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

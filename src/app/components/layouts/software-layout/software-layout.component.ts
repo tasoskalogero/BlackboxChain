@@ -29,7 +29,7 @@ export class SoftwareLayoutComponent implements OnInit  {
 
   getSoftware(): void {
     this.clear();
-    this.softwareService.getSoftware()
+    this.softwareService.getSoftwareFromDB()
       .then(software => {
         this.fetchedSoftware = software;
       })
