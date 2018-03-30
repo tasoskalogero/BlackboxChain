@@ -5,18 +5,18 @@ if [ "$#" -ne 3 ]; then
     exit
 fi
 
-# $1 BCDB TxID of dataset
+# $1 IPFS Hash of dataset
 # $2 IPFS hash of software
 # $3 user's public key
-bcdbTxID=$1
+dsIPFSHash=$1
 swIPFSHash=$2
 user_pub_key="$3"
 
-# echo $bcdbTxID
+# echo $dsIPFSHash
 # echo $swIPFSHash
 # echo $user_pub_key
 
-CIPHERTEXT_FILENAME="encrypted.txt"
+CIPHERTEXT_FILENAME="cipher.enc"
 
 FETCH_DATASET_FILE="getDataset.py"
 FETCH_SW_FILE="getSoftware.py"
@@ -28,7 +28,7 @@ RESULT_FILE="ipfs_encrypted.bin"
 
 echo "$user_pub_key" > $USER_PUB_KEY
 
-python3 $FETCH_DATASET_FILE $bcdbTxID $CIPHERTEXT_FILENAME
+python3 $FETCH_DATASET_FILE $dsIPFSHash $CIPHERTEXT_FILENAME
 
 plaintext_data=$(./decrypt.sh -f $CIPHERTEXT_FILENAME -p $CONTAINER_PRIVATE_KEY)
 

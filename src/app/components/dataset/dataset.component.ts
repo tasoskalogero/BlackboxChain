@@ -10,9 +10,6 @@ import { LoggerService } from "../../services/logger.service";
   styleUrls: ["./dataset.component.css"]
 })
 export class DatasetComponent implements OnInit {
-  @ViewChild("datasetFileInput") datasetFileInputVariable: any; //used by ViewChild
-
-  uploadedDatasetFile: File;
 
   datasetForm: FormGroup;
   private txStatus: string;
@@ -38,16 +35,6 @@ export class DatasetComponent implements OnInit {
       cost: ["", Validators.required]
     });
   }
-
-  // onChange(event) {
-  //   if(event.srcElement.files[0] != null) {
-  //     this.uploadedDatasetFile = event.srcElement.files[0];
-  //
-  //     this.loggerService.add(this.uploadedDatasetFile.name + " uploaded");
-  //     console.log(this.uploadedDatasetFile.name + ' uploaded');
-  //
-  //   }
-  // }
 
   onSubmit() {
     let formModel = this.datasetForm.value;
@@ -90,7 +77,5 @@ export class DatasetComponent implements OnInit {
 
   reset() {
     this.datasetForm.reset();
-    this.uploadedDatasetFile = null;
-    this.datasetFileInputVariable.nativeElement.value = "";
   }
 }

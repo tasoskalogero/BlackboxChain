@@ -91,6 +91,9 @@ export class BdbService {
   async queryDB(bdbId) {
     const conn = new bcdb_driver.Connection(this.apiUrl);
     let assets = await conn.searchAssets(bdbId);
+    if(assets.length === 0) {
+      return "BighcainDB TxId invalid";
+    }
     console.log("[FOUND on BDB]", assets);
     return assets[0].data;
   }

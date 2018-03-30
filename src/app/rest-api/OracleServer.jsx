@@ -1,10 +1,18 @@
 let express = require("express");
 let app = express();
 let http = require("http");
-const bcdb_driver = require("bigchaindb-driver");
-var Web3 = require("web3");
+const driver = require("bigchaindb-driver");
+const API_PATH = "http://localhost:59984/api/v1/";
+const conn = new driver.Connection(API_PATH);
+const Web3 = require("web3");
+let contract = require("truffle-contract");
+let path = require('path');
+
+const DatasetRepositoryJSON = require(path.join(__dirname, "../../../build/contracts/DatasetRepository.json"));
 
 let bodyParser = require("body-parser");
+let web3;
+
 
 // Add headers
 app.use(function(req, res, next) {
@@ -39,17 +47,28 @@ app.use(
   })
 );
 
-app.post("/exec/create", (request, res) => {
+app.post("/exec/create", async (request, res) => {
   let containerID = request.body.id;
-  let softwareIPFSHash = request.body.swIPFS;
-  let dataLoc = request.body.dataLoc;
+  let swBdbId = request.body.swBdbId;
+  let datasetBdbId = request.body.datasetBdbId;
   let userPubKey = request.body.pubUserKey;
 
   console.log(containerID);
-  console.log(softwareIPFSHash);
-  console.log(dataLoc);
+  console.log(swBdbId);
+  console.log(datasetBdbId);
   console.log(userPubKey);
-  let commands = ["./wrapper.sh", dataLoc, softwareIPFSHash, userPubKey];
+
+  let swAssets = await conn.searchAssets(swBdbId);
+  let datasetAssets = await conn.searchAssets(datasetBdbId);
+
+  // if (swAssets.length === 0 || datasetAssets.length === 0) {
+  //     console.log("[Oracle] - Invalid BigchainDB transaction IDs");
+  // }
+
+  let swIPFSHash = swAssets[0].data.ipfsHash;
+  let datasetIPFSHash = datasetAssets[0].data.ipfsHash;
+
+  let commands = ["./wrapper.sh", datasetIPFSHash, swIPFSHash, userPubKey];
   let bodyCmd = JSON.stringify({
     Cmd: commands,
     AttachStdout: true
@@ -94,7 +113,7 @@ app.post("/exec/create", (request, res) => {
 app.get("/exec/run", (request, res) => {
   let execID = request.query.execID;
 
-  console.log("[ID]", execID, "/exec/" + execID + "/start");
+  console.log("[Exec ID]", execID);
 
   let bodyCmd = JSON.stringify({});
   let post_options = {
@@ -130,16 +149,52 @@ app.get("/exec/run", (request, res) => {
     });
     post_req.write(bodyCmd);
   }).then(([status, msg]) => {
-    res.send([status, msg]);
+      console.log("RESUUUUUUULT = " + msg);
+      res.send([status, msg]);
   });
 });
+
+
+
+async function triggerPayment() {
+    let DatasetRepositoryContract = initContract(DatasetRepositoryJSON);
+    DatasetRepositoryContract.deployed().then(instance => {
+        return instance.getDatasetIDs.call({from: web3.eth.accounts[9]})
+    }).then(res => {
+        console.log(res);
+    });
+}
+
+
+function initWeb3() {
+    if (typeof web3 !== 'undefined') {
+        web3 = new Web3(web3.currentProvider);
+    } else {
+        // set the provider you want from Web3.providers
+        web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
+    }
+}
+
+function initContract(artifact) {
+    let MyContract = contract(artifact);
+    MyContract.setProvider(web3.currentProvider);
+
+    //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
+    if (typeof MyContract.currentProvider.sendAsync !== "function") {
+        MyContract.currentProvider.sendAsync = function() {
+            return MyContract.currentProvider.send.apply(
+                MyContract.currentProvider,
+                arguments);
+        };
+    }
+    return MyContract;
+}
+
+initWeb3();
+
 
 let server = app.listen(8081, () => {
   let host = server.address().address;
   let port = server.address().port;
-    // let web3 = new Web3(Web3.givenProvider || "ws://localhost:9545");
-    // web3.eth.defaultAccount = web3.eth.accounts[9];
-    // web3.eth.getAccounts().then(e => console.log(e[9]));
-    // console.log(web3.eth.getAccounts()[0]);
-    console.log("Oracle server listening at http://%s:%s", host, port);
+  console.log("Oracle server listening at http://%s:%s", host, port);
 });

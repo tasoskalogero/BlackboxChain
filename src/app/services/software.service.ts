@@ -10,7 +10,7 @@ import { LoggerService } from "./logger.service";
 export class SoftwareService {
   private currentAccount: string;
   private web3: Web3;
-  private SoftwareReposigory: any;
+  private SoftwareRepository: any;
 
   constructor(
     private bdbService: BdbService,
@@ -28,14 +28,14 @@ export class SoftwareService {
     this.web3Service
       .artifactsToContract(software_repository)
       .then(SoftwareRepo => {
-        this.SoftwareReposigory = SoftwareRepo;
+        this.SoftwareRepository = SoftwareRepo;
       });
   }
 
   async getSoftwareFromDB() {
     let fetchedSoftware = [];
 
-    let deployedSoftwareRepository = await this.SoftwareReposigory.deployed();
+    let deployedSoftwareRepository = await this.SoftwareRepository.deployed();
     try {
       let swIDs = await deployedSoftwareRepository.getSoftwareIDs.call();
       console.log("SoftwareIDs " + swIDs);
@@ -82,7 +82,7 @@ export class SoftwareService {
     );
 
     this.loggerService.add("Software stored on BigchainDB - " + txId);
-    let deployedSoftwareRepository = await this.SoftwareReposigory.deployed();
+    let deployedSoftwareRepository = await this.SoftwareRepository.deployed();
     return await deployedSoftwareRepository.addNewSoftware(txId, {
       from: this.currentAccount
     });
