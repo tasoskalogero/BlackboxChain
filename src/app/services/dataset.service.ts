@@ -47,12 +47,14 @@ export class DatasetService {
 
         let asset = await this.bdbService.queryDB(bdbId);
 
+        let ipfsHash = asset.ipfsHash;
         let datasetName = asset.name;
         let datasetDescription = asset.description;
         let cost = this.web3.utils.fromWei(asset.cost, "ether");
 
         let datasetToAdd = new Dataset(
           id,
+          ipfsHash,
           datasetName,
           datasetDescription,
           cost,
@@ -68,14 +70,14 @@ export class DatasetService {
   }
 
   async addDataset(
-    datasetFile: File,
+    ipfsHash: string,
     dsName: string,
     dsDescription: string,
     cost: string
   ) {
-    let encryptedDatasetContents = await this.readFile(datasetFile);
+    // let encryptedDatasetContents = await this.readFile(ipfsHash);
     let txId = await this.bdbService.createNewDataset(
-      encryptedDatasetContents,
+      ipfsHash,
       dsName,
       dsDescription,
       cost
@@ -89,20 +91,20 @@ export class DatasetService {
     });
   }
 
-  readFile(dataFile) {
-    return this.readContents(dataFile);
-  }
+  // readFile(dataFile) {
+  //   return this.readContents(dataFile);
+  // }
 
-  private readContents(data) {
-    let reader = new FileReader();
-
-    return new Promise((resolve, reject) => {
-      reader.onload = function(event) {
-        let contents = reader.result;
-        resolve(contents);
-      };
-
-      reader.readAsBinaryString(data);
-    });
-  }
+  // private readContents(data) {
+  //   let reader = new FileReader();
+  //
+  //   return new Promise((resolve, reject) => {
+  //     reader.onload = function(event) {
+  //       let contents = reader.result;
+  //       resolve(contents);
+  //     };
+  //
+  //     reader.readAsBinaryString(data);
+  //   });
+  // }
 }
