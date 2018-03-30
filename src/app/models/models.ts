@@ -1,7 +1,6 @@
 export class Dataset {
   constructor(
     public ID: string,
-    public ipfsHash: string,
     public datasetName: string,
     public datasetDescription: string,
     public cost: number,
@@ -24,9 +23,9 @@ export class Software {
   constructor(
     public ID: string,
     public filename: string,
-    public ipfsHash: string,
     public paramType: string,
     public description: string,
-    public cost: number
+    public cost: number,
+    public bdbId: string
   ) {}
 }

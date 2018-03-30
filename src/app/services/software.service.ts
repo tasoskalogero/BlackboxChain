@@ -49,17 +49,16 @@ export class SoftwareService {
         let asset = await this.bdbService.queryDB(bdbId);
 
         let filename = asset.filename;
-        let ipfsHash = asset.ipfsHash;
         let paramType = asset.paramType;
         let description = asset.description;
         let cost = this.web3.utils.fromWei(asset.cost, "ether");
         let softwareToAdd = new Software(
           id,
           filename,
-          ipfsHash,
           paramType,
           description,
-          cost
+          cost,
+          bdbId
         );
 
         fetchedSoftware.push(softwareToAdd);

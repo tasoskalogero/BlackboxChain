@@ -8,7 +8,7 @@ COPY writeResult.py .
 COPY wrapper.sh .
 
 RUN apt-get update && apt-get install -y \
-	libffi-dev g++ libssl-dev \
+	libffi-dev g++ libssl-dev nano\
   python3  \
   python3-pip && pip3 install --upgrade pip && \
   pip3 install -r requirements.txt &&  \

@@ -34,7 +34,7 @@ plaintext_data=$(./decrypt.sh -f $CIPHERTEXT_FILENAME -p $CONTAINER_PRIVATE_KEY)
 
 SOFTWARE_FILENAME=$(python3 $FETCH_SW_FILE $swIPFSHash 2>&1)
 
-plaintext_result=$(python $SOFTWARE_FILENAME "$plaintext_data" 2>&1)
+plaintext_result=$(python3 $SOFTWARE_FILENAME "$plaintext_data" 2>&1)
 echo $plaintext_result | openssl rsautl -encrypt -inkey $USER_PUB_KEY -pubin -out $RESULT_FILE
 
 ipfs_address=$(python3 $WRITE_TO_IPFS $RESULT_FILE 2>&1)

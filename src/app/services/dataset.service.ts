@@ -47,14 +47,12 @@ export class DatasetService {
 
         let asset = await this.bdbService.queryDB(bdbId);
 
-        let ipfsHash = asset.ipfsHash;
         let datasetName = asset.name;
         let datasetDescription = asset.description;
         let cost = this.web3.utils.fromWei(asset.cost, "ether");
 
         let datasetToAdd = new Dataset(
           id,
-          ipfsHash,
           datasetName,
           datasetDescription,
           cost,
