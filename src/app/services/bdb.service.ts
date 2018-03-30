@@ -50,23 +50,15 @@ export class BdbService {
     return retrievedTx.id;
   }
 
-  async createNewContainer(containerDockerID, publicKey, cost, status) {
+  async createNewContainer(containerDockerID, publicKey, cost) {
     const owner = new bcdb_driver.Ed25519Keypair();
     console.log(
-      "Posting container: " +
-        containerDockerID +
-        " " +
-        publicKey +
-        " " +
-        cost +
-        " " +
-        status
+      "Posting container: " + containerDockerID + " " + publicKey + " " + cost
     );
     let asset = {
       container_ID: containerDockerID,
       pubKey: publicKey,
-      cost: cost,
-      status: status
+      cost: cost
     };
     let metadata = null;
 

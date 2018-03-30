@@ -1,18 +1,16 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {Web3Service} from '../../util/web3.service';
-import {ContainerService} from '../../services/container.service';
-import {LoggerService} from '../../services/logger.service';
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { Web3Service } from "../../util/web3.service";
+import { ContainerService } from "../../services/container.service";
+import { LoggerService } from "../../services/logger.service";
 
 @Component({
-  selector: 'app-container',
-  templateUrl: './container.component.html',
-  styleUrls: ['./container.component.css']
+  selector: "app-container",
+  templateUrl: "./container.component.html",
+  styleUrls: ["./container.component.css"]
 })
 export class ContainerComponent implements OnInit {
-
-  @ViewChild('pubFileInput')
-  pubKeyFileInputVariable: any;  //used by ViewChile
+  @ViewChild("pubFileInput") pubKeyFileInputVariable: any; //used by ViewChile
 
   containerForm: FormGroup;
   statusArray = [];
@@ -20,68 +18,67 @@ export class ContainerComponent implements OnInit {
   private web3: any;
   private txStatus: any;
 
-
-  constructor(private fb: FormBuilder,
-              private web3Service: Web3Service,
-              private containerService: ContainerService,
-              private loggerService: LoggerService) {
-
-  }
+  constructor(
+    private fb: FormBuilder,
+    private web3Service: Web3Service,
+    private containerService: ContainerService,
+    private loggerService: LoggerService
+  ) {}
 
   ngOnInit() {
     this.createForm();
     // this.statusArray = [];
-    this.statusArray.push("Running");
-    this.statusArray.push("Closed");
+    // this.statusArray.push("Running");
+    // this.statusArray.push("Closed");
     this.web3 = this.web3Service.getWeb3();
   }
 
   private createForm() {
     this.containerForm = this.fb.group({
-        dockerID: ['', Validators.required],
-        publicKey: [null, Validators.required],   //store only filename
-        cost: ['', Validators.required],   //in Wei
-        status: ['', Validators.required]   //running/not running
-    })
+      dockerID: ["", Validators.required],
+      publicKey: [null, Validators.required], //store only filename
+      cost: ["", Validators.required] //in Wei
+      // status: ['', Validators.required]   //running/not running
+    });
   }
 
   fileChange(event) {
     let fileList: FileList = event.target.files;
-    if(fileList.length > 0) {
+    if (fileList.length > 0) {
       let file: File = fileList[0];
       console.log(file);
-      this.containerForm.controls['publicKey'].setValue(file);
+      this.containerForm.controls["publicKey"].setValue(file);
     }
   }
 
-
   onSubmit() {
     let formModel = this.containerForm.value;
-    this.setTxStatus('Initiating transaction... (please wait)');
-    console.log(formModel['dockerID']);
-    console.log(formModel['publicKey']);
-    console.log(formModel['cost']);
-    console.log(formModel['status']);
-    this.containerService.addContainer(
-      formModel['dockerID'],
-      formModel['publicKey'],
-      this.web3.utils.toWei(formModel['cost'].toString(), 'ether'),
-      formModel['status'])
+    this.setTxStatus("Initiating transaction... (please wait)");
+    console.log(formModel["dockerID"]);
+    console.log(formModel["publicKey"]);
+    console.log(formModel["cost"]);
+    // console.log(formModel['status']);
+    this.containerService
+      .addContainer(
+        formModel["dockerID"],
+        formModel["publicKey"],
+        this.web3.utils.toWei(formModel["cost"].toString(), "ether")
+      )
       .then(result => {
         if (!result) {
-          console.log('Transaction failed!');
-          this.setTxStatus('Transaction failed!');
+          console.log("Transaction failed!");
+          this.setTxStatus("Transaction failed!");
         } else {
-          console.log('Transaction completed!');
-          this.setTxStatus('Transaction completed!');
-          this.loggerService.add('Container added successfully - ' + result.tx);
+          console.log("Transaction completed!");
+          this.setTxStatus("Transaction completed!");
+          this.loggerService.add("Container added successfully - " + result.tx);
           this.reset();
         }
       })
       .catch(error => {
         console.log(error);
-        this.setTxStatus('Transaction failed!');
-        this.loggerService.add('Adding container failed.')
+        this.setTxStatus("Transaction failed!");
+        this.loggerService.add("Adding container failed.");
       });
   }
 
@@ -96,5 +93,4 @@ export class ContainerComponent implements OnInit {
   setTxStatus(status) {
     this.txStatus = status;
   }
-
 }

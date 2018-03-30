@@ -6,7 +6,7 @@
         <li style="cursor: pointer" class="list-group-item"
             *ngFor="let container of fetchedContainers"
             [ngClass]="{'active': container == selectedContainer}"
-            (click)="container.running && setSelected(container)">
+            (click)="setSelected(container)">
             <strong>ContainerID:</strong> {{container.dockerID}}
             <br/>
             <strong>Public key:</strong>
@@ -15,14 +15,14 @@
             <strong>BigchainDB TxID:</strong> {{container.bdbId}}
             <br/>
             <strong>Cost (ETH): </strong> {{container.cost}}
-            <br/>
-            <div style="display:inline;"><strong>State:</strong></div>
-            <div *ngIf="container.running" style="color: limegreen; display:inline;">
-              Up
-            </div>
-            <div *ngIf="!container.running" style="color: red;display:inline;">
-              Exited
-            </div>
+            <!--<br/>-->
+            <!--<div style="display:inline;"><strong>State:</strong></div>-->
+            <!--<div *ngIf="container.running" style="color: limegreen; display:inline;">-->
+              <!--Up-->
+            <!--</div>-->
+            <!--<div *ngIf="!container.running" style="color: red;display:inline;">-->
+              <!--Exited-->
+            <!--</div>-->
         </li>
       </ul>
     </div>

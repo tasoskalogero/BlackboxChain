@@ -48,7 +48,7 @@ export class ContainerService {
                 let cost = this.web3.utils.fromWei(asset.cost, 'ether');
                 let status = asset.status;
 
-                let containerToAdd = new Container(id, containerDockerID, publicKey, status, cost, bdbId);
+                let containerToAdd = new Container(id, containerDockerID, publicKey, cost, bdbId);
                 fetchedContainers.push(containerToAdd);
             }
             return fetchedContainers;
@@ -58,9 +58,9 @@ export class ContainerService {
         }
     }
 
-    async addContainer(containerID: string, publicKey: File, cost: string, status: string) {
+    async addContainer(containerID: string, publicKey: File, cost: string) {
         let pubkeyContents = await this.readFile(publicKey);
-        let txId = await this.bdbService.createNewContainer(containerID, pubkeyContents, cost, status);
+        let txId = await this.bdbService.createNewContainer(containerID, pubkeyContents, cost);
 
         this.loggerService.add('Container stored on BigchainDB - ' + txId );
 

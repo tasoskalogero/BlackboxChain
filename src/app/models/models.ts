@@ -14,7 +14,7 @@ export class Container {
     public ID: string,
     public dockerID: string,
     public publicKey: string,
-    public running: boolean,
+    // public running: boolean,
     public cost: number,
     public bdbId: string
   ) {}
