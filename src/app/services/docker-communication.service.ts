@@ -23,7 +23,6 @@ export class DockerCommunicationService {
         let containerID = containerInfo.dockerID;
         let swBdbId = softwareInfo.bdbId;
         let datasetBdbId = dataset.bdbId;
-        // c34febcd3d660dd26635c7ba22b4e7b6b9147d6c6280f50a57bc4e02519928
         let post_data = {'id': containerID, 'swBdbId': swBdbId, 'datasetBdbId': datasetBdbId, 'pubUserKey': pubUserKey};
         return this.http.post<any>(this.EXEC_CREATE, post_data)
             .pipe(

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import argparse
 import ipfsapi
+import sys
 
 INSIDE_DOCKER_CONTAINER = True
 

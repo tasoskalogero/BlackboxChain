@@ -74,12 +74,18 @@ export class ComputationLayoutComponent implements OnInit {
         .execCreate(this.container, this.software, this.dataset, pubkey)
         .subscribe(res => {
           console.log("----------- ", res);
-          let exec_id = JSON.parse(res[1]).Id;
-          this.dockerCommunicationService.execStart(exec_id).subscribe(res => {
-            let ipfsHash = res[1].replace(/\//g, "");
-            console.log(ipfsHash);
-            this.loggerService.add(ipfsHash);
-          });
+          if (res[0] == "300") {
+            this.loggerService.add(res[1]);
+          } else {
+            let exec_id = JSON.parse(res[1]).Id;
+            this.dockerCommunicationService
+              .execStart(exec_id)
+              .subscribe(res => {
+                let ipfsHash = res[1].replace(/\//g, "");
+                console.log(ipfsHash);
+                this.loggerService.add(ipfsHash);
+              });
+          }
         });
     });
   }
@@ -117,11 +123,15 @@ export class ComputationLayoutComponent implements OnInit {
   }
 
   async execPayment() {
-    let DatasetRepository = await this.web3Service.artifactsToContract(dataset_repository);
+    let DatasetRepository = await this.web3Service.artifactsToContract(
+      dataset_repository
+    );
     let deployedDatasetRepository = await DatasetRepository.deployed();
     let DatasetRepoAddress = deployedDatasetRepository.address;
 
-    let ContainerRepository = await this.web3Service.artifactsToContract(container_repository);
+    let ContainerRepository = await this.web3Service.artifactsToContract(
+      container_repository
+    );
     let deployedContainerRepository = await ContainerRepository.deployed();
     let ContainerRepoAddress = deployedContainerRepository.address;
 

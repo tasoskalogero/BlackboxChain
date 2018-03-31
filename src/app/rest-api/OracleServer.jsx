@@ -47,7 +47,7 @@ app.use(
   })
 );
 
-app.post("/exec/create", async (request, res) => {
+app.post("/exec/create", async (request, res, next) => {
   let containerID = request.body.id;
   let swBdbId = request.body.swBdbId;
   let datasetBdbId = request.body.datasetBdbId;
@@ -61,9 +61,12 @@ app.post("/exec/create", async (request, res) => {
   let swAssets = await conn.searchAssets(swBdbId);
   let datasetAssets = await conn.searchAssets(datasetBdbId);
 
-  // if (swAssets.length === 0 || datasetAssets.length === 0) {
-  //     console.log("[Oracle] - Invalid BigchainDB transaction IDs");
-  // }
+  if (swAssets.length === 0 || datasetAssets.length === 0) {
+      let errorMsg = "[Oracle] - Invalid BigchainDB transaction IDs";
+      console.log(errorMsg);
+      res.send([300, errorMsg]);
+      return next();
+  }
 
   let swIPFSHash = swAssets[0].data.ipfsHash;
   let datasetIPFSHash = datasetAssets[0].data.ipfsHash;
@@ -102,6 +105,7 @@ app.post("/exec/create", async (request, res) => {
         })
         .on("error", e => {
           console.log("ERROR", e);
+          resolve(1,"Failed to create exec command.")
         });
     });
     post_req.write(bodyCmd);
@@ -145,11 +149,13 @@ app.get("/exec/run", (request, res) => {
         })
         .on("error", e => {
           console.log("ERROR", e);
+          resolve(1,"Failed to run exec command.")
         });
     });
     post_req.write(bodyCmd);
   }).then(([status, msg]) => {
-      console.log("RESUUUUUUULT = " + msg);
+      let result = msg.replace(/\//g, "");
+      console.log("RESUUUUUUULT = " + result);
       res.send([status, msg]);
   });
 });

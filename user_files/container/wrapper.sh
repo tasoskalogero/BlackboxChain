@@ -36,7 +36,7 @@ FETCH_DATASET_FILE="getDataset.py"
 FETCH_SW_FILE="getSoftware.py"
 WRITE_TO_IPFS="writeResult.py"
 
-CONTAINER_PRIVATE_KEY="private.pem"
+CONTAINER_PRIVATE_KEY="keys/private.pem"
 USER_PUB_KEY="user.pem"
 RESULT_FILE="ipfs_encrypted.bin"
 
