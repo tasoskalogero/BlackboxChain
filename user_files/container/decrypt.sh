@@ -29,7 +29,13 @@ while getopts ":hp:f:" opt; do
 
       if [ $data_flag = true ]
       then
-        echo $(openssl rsautl -decrypt -inkey $private_key -in $encr_file_path)
+        plaintext="$(openssl rsautl -decrypt -inkey $private_key -in $encr_file_path 2>&1)"
+        if [ "$?" == "1" ]; then
+          echo "Openssl: error decrypting the file."
+          exit 1
+        else
+          echo $plaintext
+        fi
       fi
       ;;
     f) 
@@ -37,7 +43,14 @@ while getopts ":hp:f:" opt; do
       data_flag=true
       if [ $private_flag = true ]
       then  
-        echo $(openssl rsautl -decrypt -inkey $private_key -in $encr_file_path)
+        plaintext="$(openssl rsautl -decrypt -inkey $private_key -in $encr_file_path 2>&1)"
+        if [ "$?" == "1" ]; then
+          echo "Openssl: error decrypting the file."
+          exit 1
+        else
+          echo $plaintext
+        fi
+        # echo $(openssl rsautl -decrypt -inkey $private_key -in $encr_file_path)
       fi
       ;;
     \?)

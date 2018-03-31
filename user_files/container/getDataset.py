@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import argparse
 import base64
-# from bigchaindb_driver import BigchainDB
 import ipfsapi
+import sys
 
 INSIDE_DOCKER_CONTAINER = True
 
@@ -11,18 +11,13 @@ parser.add_argument("ipfsHash", help="the hash on IPFS", type=str)
 parser.add_argument("outFilename", help="the name of the created file", type=str)
 args = parser.parse_args()
 
-if(INSIDE_DOCKER_CONTAINER):
-# 	bdb_root_url = 'docker.for.mac.host.internal:59984'
-	api = ipfsapi.connect('docker.for.mac.host.internal', 5001)
-else:
-	# bdb_root_url = 'http://localhost:59984'
-	api = ipfsapi.connect('127.0.0.1', 5001)
+try: 
+	if(INSIDE_DOCKER_CONTAINER):
+		api = ipfsapi.connect('docker.for.mac.host.internal', 5001)
+	else:
+		api = ipfsapi.connect('127.0.0.1', 5001)
 
-
-# bdb = BigchainDB(bdb_root_url)
-
-# asset = bdb.assets.get(search=args.ipfsHash)
-with open(args.outFilename, 'wb+') as out_file:
-	# encoded_data = api.cat(args.ipfsHash)
-	# decoded_data = base64.b64decode(encoded_data)
-	out_file.write(api.cat(args.ipfsHash))
+	with open(args.outFilename, 'wb+') as out_file:
+		out_file.write(api.cat(args.ipfsHash))
+except:
+	sys.exit(1);
