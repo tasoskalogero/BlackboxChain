@@ -154,8 +154,11 @@ app.get("/exec/run", (request, res) => {
     });
     post_req.write(bodyCmd);
   }).then(([status, msg]) => {
-      let result = msg.replace(/\//g, "");
-      console.log("RESUUUUUUULT = " + result);
+      console.log([status, msg]);
+      console.log(decodeURIComponent(msg));
+      msg = decodeURIComponent(msg).replace(/\//g, "");           // remove / from ipfs address result
+      msg = msg.replace(/'/g, "");
+      msg = msg.replace('.', "");
       res.send([status, msg]);
   });
 });
