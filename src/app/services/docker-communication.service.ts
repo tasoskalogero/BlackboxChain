@@ -32,8 +32,8 @@ export class DockerCommunicationService {
     }
 
     //TODO change to http.post???
-    execStart(exec_id): Observable<String> {
-        let post_data = {'execId': exec_id};
+    execStart(exec_id, container, dataset, software): Observable<String> {
+        let post_data = {'execId': exec_id, 'container': container, 'dataset': dataset, 'software':software};
         console.log(this.EXEC_START + '?id=' + exec_id);
         return this.http.post<any>(this.EXEC_START , post_data)
             .pipe(

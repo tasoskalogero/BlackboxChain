@@ -79,7 +79,7 @@ export class ComputationLayoutComponent implements OnInit {
           } else {
             let exec_id = JSON.parse(res[1]).Id;
             this.dockerCommunicationService
-              .execStart(exec_id)
+              .execStart(exec_id,this.container, this.dataset, this.software)
               .subscribe(res => {
                   let ipfsHash = res[1];
                 console.log(ipfsHash);

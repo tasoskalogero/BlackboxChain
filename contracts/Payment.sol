@@ -2,7 +2,9 @@ pragma solidity ^0.4.18;
 
 contract Payment {
 
-    function payment(address dsAddr, address contAddr,bytes32 dsID, bytes32 containerID) public payable returns(uint){
+    //TODO check if msg.value === allcosts (sw,ds,container)
+    //TODO allow only from oracle - accounts[9]
+    function payment(address dsAddr, address contAddr,bytes32 dsID, bytes32 containerID, bytes32 softwareID) public payable returns(uint){
         DatasetRepository dsRepo = DatasetRepository(dsAddr);
         ContainerRepository containerRepo = ContainerRepository(contAddr);
         var (dsCost, dsOwner) = dsRepo.getDatasetPurchaseInfoByID(dsID);
@@ -20,3 +22,4 @@ contract DatasetRepository {
 contract ContainerRepository{
     function getContainerPurchaseInfoByID(bytes32 _id)returns(uint, address);
 }
+
