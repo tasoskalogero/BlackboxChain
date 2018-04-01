@@ -33,8 +33,9 @@ export class DockerCommunicationService {
 
     //TODO change to http.post???
     execStart(exec_id): Observable<String> {
+        let post_data = {'execId': exec_id};
         console.log(this.EXEC_START + '?id=' + exec_id);
-        return this.http.get<string>(this.EXEC_START + '?execID=' + exec_id)
+        return this.http.post<any>(this.EXEC_START , post_data)
             .pipe(
                 tap(_ => this.log('Exec instance started')),
                 catchError(this.handleError('execStart', ''))

@@ -1,18 +1,17 @@
-let express = require("express");
-let app = express();
-let http = require("http");
+const express = require("express");
+const app = express();
+const http = require("http");
+const contract = require("truffle-contract");
+const path = require('path');
 const driver = require("bigchaindb-driver");
 const API_PATH = "http://localhost:59984/api/v1/";
 const conn = new driver.Connection(API_PATH);
 const Web3 = require("web3");
-let contract = require("truffle-contract");
-let path = require('path');
-
+const codes = require('./error_codes.js');
+let bodyParser = require("body-parser");
 const DatasetRepositoryJSON = require(path.join(__dirname, "../../../build/contracts/DatasetRepository.json"));
 
-let bodyParser = require("body-parser");
 let web3;
-
 
 // Add headers
 app.use(function(req, res, next) {
@@ -40,12 +39,7 @@ app.use(function(req, res, next) {
 });
 
 app.use(bodyParser.json()); // to support JSON-encoded bodies
-app.use(
-  bodyParser.urlencoded({
-    // to support URL-encoded bodies
-    extended: true
-  })
-);
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.post("/exec/create", async (request, res, next) => {
   let containerID = request.body.id;
@@ -62,9 +56,7 @@ app.post("/exec/create", async (request, res, next) => {
   let datasetAssets = await conn.searchAssets(datasetBdbId);
 
   if (swAssets.length === 0 || datasetAssets.length === 0) {
-      let errorMsg = "[Oracle] - Invalid BigchainDB transaction IDs";
-      console.log(errorMsg);
-      res.send([300, errorMsg]);
+      res.send([300, codes.getErrorMessage(300)]);
       return next();
   }
 
@@ -100,7 +92,7 @@ app.post("/exec/create", async (request, res, next) => {
           console.log("Response: " + chunk);
         })
         .on("end", () => {
-          console.log("DATA = ", rawData);
+          console.log("RESULT = ", rawData);
           resolve([status, rawData]);
         })
         .on("error", e => {
@@ -114,8 +106,8 @@ app.post("/exec/create", async (request, res, next) => {
   });
 });
 
-app.get("/exec/run", (request, res) => {
-  let execID = request.query.execID;
+app.post("/exec/run", (request, res) => {
+  let execID = request.body.execId;
 
   console.log("[Exec ID]", execID);
 
@@ -127,39 +119,47 @@ app.get("/exec/run", (request, res) => {
     headers: {
       "Content-Type": "application/json",
       "Content-Length": Buffer.byteLength(bodyCmd)
-    },
-    json: true
+    }
   };
 
   new Promise(resolve => {
     let post_req = http.request(post_options, function(res) {
-      res.setEncoding("utf8");
-      let status = res.statusCode;
-      console.log("STATUS: " + status);
+        // res.setEncoding("utf8");
+        let status = res.statusCode;
+        console.log("STATUS: " + status);
 
-      let rawData = "";
-      res
-        .on("data", function(chunk) {
-          rawData += chunk;
-          console.log("Response: " + chunk);
-        })
-        .on("end", () => {
-          console.log("RECEIVED: \n", rawData);
-          resolve([status, rawData]);
-        })
-        .on("error", e => {
+        let output = '';
+
+        res.on('data', function(chunk) {
+            console.log("Response:" + chunk);
+            output += chunk;
+        });
+
+        res.on('end', () => {
+          console.log("RESULT:", output);
+          resolve(output);
+        });
+
+        res.on('error', e => {
           console.log("ERROR", e);
           resolve(1,"Failed to run exec command.")
         });
     });
     post_req.write(bodyCmd);
-  }).then(([status, msg]) => {
-      console.log([status, msg]);
-      console.log(decodeURIComponent(msg));
-      msg = decodeURIComponent(msg).replace(/\//g, "");           // remove / from ipfs address result
-      msg = msg.replace(/'/g, "");
-      msg = msg.replace('.', "");
-      res.send([status, msg]);
+    post_req.end();
+
+  }).then((msg) => {
+      msg = msg.replace(/[\u0001\u0000\u0000\u0000\u0000\u0000\u0000\u0004]/g,'');
+      msg = msg.trim();
+      let error_codes_array = [600,610,620,630,640,650];
+      if(error_codes_array.includes(parseInt(msg))) {
+          let error_msg = codes.getErrorMessage(parseInt(msg));
+          res.send(["Failure",error_msg]);
+      } else {
+        msg = msg.replace(/\//g, "");           // remove / from ipfs address result
+          res.send(["Success",msg]);
+      }
+
   });
 });
 

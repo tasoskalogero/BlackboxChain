@@ -81,9 +81,9 @@ export class ComputationLayoutComponent implements OnInit {
             this.dockerCommunicationService
               .execStart(exec_id)
               .subscribe(res => {
-                let ipfsHash = res[1];
+                  let ipfsHash = res[1];
                 console.log(ipfsHash);
-                this.loggerService.add(ipfsHash);
+                this.loggerService.add(res[0] + " - " + ipfsHash);
               });
           }
         });
