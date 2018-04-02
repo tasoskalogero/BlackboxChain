@@ -55,27 +55,27 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.post("/exec/create", async (request, res, next) => {
     let containerID = request.body.id;
-    let swBdbId = request.body.swBdbId;
-    let datasetBdbId = request.body.datasetBdbId;
+    let swIPFSHash = request.body.swIpfsHash;
+    let datasetBdbTxID = request.body.datasetBdbId;
     let userPubKey = request.body.pubUserKey;
 
     console.log(containerID);
-    console.log(swBdbId);
-    console.log(datasetBdbId);
+    console.log(swIPFSHash);
+    console.log(datasetBdbTxID);
     console.log(userPubKey);
 
-    let swAssets = await conn.searchAssets(swBdbId);
-    let datasetAssets = await conn.searchAssets(datasetBdbId);
+    // let swAssets = await conn.searchAssets(swIpfsHash);
+    let datasetAssets = await conn.searchAssets(datasetBdbTxID);
 
-    if (swAssets.length === 0 || datasetAssets.length === 0) {
+    if (datasetAssets.length === 0) {
         res.send([300, codes.getErrorMessage(300)]);
         return next();
     }
 
-    let swIPFSHash = swAssets[0].data.ipfsHash;
-    let datasetIPFSHash = datasetAssets[0].data.ipfsHash;
+    // let swIPFSHash = swAssets[0].data.ipfsHash;
+    // let datasetBdbTxID = datasetAssets[0].data.ipfsHash;
 
-    let commands = ["./wrapper.sh", datasetIPFSHash, swIPFSHash, userPubKey];
+    let commands = ["./wrapper.sh", datasetBdbTxID, swIPFSHash, userPubKey];
     let bodyCmd = JSON.stringify({
         Cmd: commands,
         AttachStdout: true
@@ -169,7 +169,7 @@ app.post("/exec/run", (request, res) => {
         if (error_codes_array.includes(parseInt(msg))) {
             let error_msg = codes.getErrorMessage(parseInt(msg));
 
-            await triggerPayment(container, dataset, software);
+            // await triggerPayment(container, dataset, software);
 
             res.send(["Failure", error_msg]);
         } else {

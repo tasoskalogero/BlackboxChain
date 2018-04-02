@@ -21,9 +21,9 @@ export class DockerCommunicationService {
 
     execCreate(containerInfo, softwareInfo, dataset, pubUserKey): Observable<string> {
         let containerID = containerInfo.dockerID;
-        let swBdbId = softwareInfo.bdbId;
+        let swIpfsHash = softwareInfo.ipfsHash;
         let datasetBdbId = dataset.bdbTxId;
-        let post_data = {'id': containerID, 'swBdbId': swBdbId, 'datasetBdbId': datasetBdbId, 'pubUserKey': pubUserKey};
+        let post_data = {'id': containerID, 'swIpfsHash': swIpfsHash, 'datasetBdbId': datasetBdbId, 'pubUserKey': pubUserKey};
         return this.http.post<any>(this.EXEC_CREATE, post_data)
             .pipe(
                 tap(_ => this.log('Exec instance created')),
