@@ -35,13 +35,9 @@ contract DatasetRepository {
     return dsIdentifiers;
   }
 
-  function getDatasetPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
-    return(datasetInventory[_id].dsCost, datasetInventory[_id].owner);
-  }
+  function getDatasetByID(bytes32 _id) public view returns(string datasetName, string datasetDescription, uint cost, string bdbTxID, address owner) {
 
-  function getDatasetByID(bytes32 _id) public view returns(string datasetName, string datasetDescription, uint cost, string bdbTxID) {
-
-    return (datasetInventory[_id].dsName, datasetInventory[_id].dsDescription, datasetInventory[_id].dsCost, datasetInventory[_id].bdbTxID);
+    return (datasetInventory[_id].dsName, datasetInventory[_id].dsDescription, datasetInventory[_id].dsCost, datasetInventory[_id].bdbTxID, datasetInventory[_id].owner);
   }
 
 

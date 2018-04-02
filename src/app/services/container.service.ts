@@ -44,8 +44,8 @@ export class ContainerService {
                 let containerDockerID = containerInfo[0];
                 let pubKey = containerInfo[1];
                 let costEther = this.web3.utils.fromWei(containerInfo[2].toNumber().toString(), 'ether');
-
-                let containerToAdd = new Container(containerID, containerDockerID, pubKey, costEther);
+                let owner = containerInfo[3];
+                let containerToAdd = new Container(containerID, containerDockerID, pubKey, costEther, owner);
                 fetchedContainers.push(containerToAdd);
             }
             return fetchedContainers;

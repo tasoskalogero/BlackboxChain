@@ -11,6 +11,7 @@ import { Web3Service } from "../../../util/web3.service";
 import payment from "../../../../../build/contracts/Payment.json";
 import dataset_repository from "../../../../../build/contracts/DatasetRepository.json";
 import container_repository from "../../../../../build/contracts/ContainerRepository.json";
+import {PaymentService} from '../../../services/payment.service';
 
 @Component({
   selector: "app-computation-layout",
@@ -40,6 +41,7 @@ export class ComputationLayoutComponent implements OnInit {
     private web3Service: Web3Service,
     private communicationService: CommunicationService,
     private dockerCommunicationService: DockerCommunicationService,
+    private paymentService: PaymentService,
     private loggerService: LoggerService
   ) {
     communicationService.container$.subscribe(cont => {
@@ -69,17 +71,23 @@ export class ComputationLayoutComponent implements OnInit {
     console.log("Selected software received: ", this.software);
     console.log("===========================");
 
-    this.readFile(this.uploadedUserPubKeyFile).then(pubkey => {
+    let web3 = this.web3Service.getWeb3();
+    let buyer = await web3.eth.getCoinbase();
+
+      this.readFile(this.uploadedUserPubKeyFile).then(pubkey => {
       this.dockerCommunicationService
         .execCreate(this.container, this.software, this.dataset, pubkey)
-        .subscribe(res => {
+        .subscribe(async res => {
           console.log("----------- ", res);
-          if (res[0] == "300") {
+          if (res[0] == "300") {        //invalid bdb transaction id of dataset
             this.loggerService.add(res[1]);
           } else {
             let exec_id = JSON.parse(res[1]).Id;
+
+            let paymentID = await this.paymentService.createPayment(this.container, this.dataset, this.software);
+            console.log("PAYMENTID = ", paymentID);
             this.dockerCommunicationService
-              .execStart(exec_id,this.container, this.dataset, this.software)
+              .execStart(exec_id, paymentID)
               .subscribe(res => {
                   let ipfsHash = res[1];
                 console.log(ipfsHash);

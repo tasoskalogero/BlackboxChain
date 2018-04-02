@@ -36,8 +36,8 @@ contract SoftwareRepository {
         return softwareIdentifiers;
     }
 
-    function getSoftwareByID(bytes32 _id) public view returns(string filename, string ipfsHash, string paramTypes, string description, uint cost) {
-        return (softwareInventory[_id].filename , softwareInventory[_id].ipfsHash, softwareInventory[_id].paramTypes, softwareInventory[_id].description, softwareInventory[_id].cost);
+    function getSoftwareByID(bytes32 _id) public view returns(string filename, string ipfsHash, string paramTypes, string description, uint cost, address owner) {
+        return (softwareInventory[_id].filename , softwareInventory[_id].ipfsHash, softwareInventory[_id].paramTypes, softwareInventory[_id].description, softwareInventory[_id].cost, softwareInventory[_id].owner);
 
     }
 

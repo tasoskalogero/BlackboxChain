@@ -45,7 +45,6 @@ echo "$user_pub_key" > $USER_PUB_KEY
 
 python3 $FETCH_DATASET_FILE $dsBdbTxID $CIPHERTEXT_FILENAME
 if [ "$?" = "1" ]; then
-	echo "Error fetching dataset file. Aborting."
 	error_exit 600
 fi
 
@@ -57,25 +56,21 @@ fi
 
 python3 $FETCH_SW_FILE $swIPFSHash $SOFTWARE_FILE
 if [ "$?" = "1" ]; then
-	echo "Error fetching sofwtare in container. Aborting."
 	error_exit 620
 fi
 
 plaintext_result=$(python3 $SOFTWARE_FILE "$plaintext_data" 2>&1)
 if [ "$?" = "1" ]; then
-	echo "Error executing sofwtare in container. Aborting."
 	error_exit 630
 fi
 
 echo $plaintext_result | openssl rsautl -encrypt -inkey $USER_PUB_KEY -pubin -out $RESULT_FILE
 if [ "${PIPESTATUS[1]}" = "1" ]; then
-	echo "Error encrypting result. Aborting."
 	error_exit 640
 fi
 
 ipfs_address=$(python3 $WRITE_TO_IPFS $RESULT_FILE 2>&1)
 if [ "$?" = "1" ]; then
-	echo "Error writting result on IPFS. Aborting."
 	error_exit 650
 fi
 

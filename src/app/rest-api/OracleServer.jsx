@@ -9,15 +9,6 @@ const conn = new driver.Connection(API_PATH);
 const Web3 = require("web3");
 const codes = require("./error_codes.js");
 let bodyParser = require("body-parser");
-const DatasetRepositoryJSON = require(path.join(
-    __dirname,
-    "../../../build/contracts/DatasetRepository.json"
-));
-const ContainerRepositoryJSON = require(path.join(
-    __dirname,
-    "../../../build/contracts/ContainerRepository.json"
-));
-
 const PaymentJSON = require(path.join(
     __dirname,
     "../../../build/contracts/Payment.json"
@@ -72,9 +63,6 @@ app.post("/exec/create", async (request, res, next) => {
         return next();
     }
 
-    // let swIPFSHash = swAssets[0].data.ipfsHash;
-    // let datasetBdbTxID = datasetAssets[0].data.ipfsHash;
-
     let commands = ["./wrapper.sh", datasetBdbTxID, swIPFSHash, userPubKey];
     let bodyCmd = JSON.stringify({
         Cmd: commands,
@@ -120,9 +108,7 @@ app.post("/exec/create", async (request, res, next) => {
 
 app.post("/exec/run", (request, res) => {
     let execID = request.body.execId;
-    let container = request.body.container;
-    let dataset = request.body.dataset;
-    let software = request.body.software;
+    let paymentID = request.body.paymentID;
 
     console.log("[Exec ID]", execID);
 
@@ -168,42 +154,23 @@ app.post("/exec/run", (request, res) => {
         let error_codes_array = [600, 610, 620, 630, 640, 650];
         if (error_codes_array.includes(parseInt(msg))) {
             let error_msg = codes.getErrorMessage(parseInt(msg));
-
-            // await triggerPayment(container, dataset, software);
-
             res.send(["Failure", error_msg]);
         } else {
+            await execPayment(paymentID);
             msg = msg.replace(/\//g, ""); // remove / from ipfs address result
             res.send(["Success", msg]);
         }
     });
 });
 
-async function triggerPayment(container, dataset, software) {
-    let DatasetRepositoryContract = initContract(DatasetRepositoryJSON);
-    let deployedDatasetRepository = await DatasetRepositoryContract.deployed();
-    let datasetRepositoryAddress = deployedDatasetRepository.address;
-
-    let ContainerRepositoryContract = initContract(ContainerRepositoryJSON);
-    let deployedContainerRepository = await ContainerRepositoryContract.deployed();
-    let containerRepositoryAddress = deployedContainerRepository.address;
-
+async function execPayment(paymentID) {
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
     let PaymentContract = initContract(PaymentJSON);
     let deployedPayment = await PaymentContract.deployed();
-
     try {
-        let accounts = await web3.eth.getAccounts();
-        let currentAccount = accounts[9];
-        let totalCostEth = (+dataset.cost + +container.cost + +software.cost).toString();
-        let totalCostWei = web3.utils.toWei(totalCostEth, "ether");
-        console.log(totalCostWei);
-        let paidCost = await deployedPayment.payment(
-            datasetRepositoryAddress,
-            containerRepositoryAddress,
-            dataset.ID,
-            container.dockerID, software.ID, {from: currentAccount, value: totalCostWei });
-        console.log(paidCost);
-    }catch (e) {
+        let success = await deployedPayment.executePayment(paymentID, {from: currentAccount});
+    } catch (e) {
         console.log(e);
     }
 }

@@ -47,6 +47,7 @@ export class SoftwareService {
         let swParamTypes = swInfo[2];
         let swDescription = swInfo[3];
         let costEther = this.web3.utils.fromWei(swInfo[4].toNumber().toString(), 'ether');
+        let owner = swInfo[5];
 
         let softwareToAdd = new Software(
             swIDs[i],
@@ -54,7 +55,8 @@ export class SoftwareService {
             swIpfsHash,
             swParamTypes,
             swDescription,
-            costEther
+            costEther,
+            owner
         );
 
         fetchedSoftware.push(softwareToAdd);

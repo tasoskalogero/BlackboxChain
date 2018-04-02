@@ -46,8 +46,9 @@ export class DatasetService {
               let datasetDescription = dsInfo[1];
               let costEther = this.web3.utils.fromWei(dsInfo[2].toNumber().toString(), 'ether');
               let bdbTxID = dsInfo[3];
+              let owner = dsInfo[4];
 
-              let datasetToAdd = new Dataset(dsID,datasetName, datasetDescription, costEther, bdbTxID);
+              let datasetToAdd = new Dataset(dsID,datasetName, datasetDescription, costEther, bdbTxID, owner);
               datasets.push(datasetToAdd);
           }
       } catch(e) {

@@ -4,7 +4,9 @@ export class Dataset {
     public datasetName: string,
     public datasetDescription: string,
     public cost: number,
-    public bdbTxId: string
+    public bdbTxId: string,
+    public owner: string
+
   ) {}
 }
 
@@ -13,7 +15,8 @@ export class Container {
     public ID: string,
     public dockerID: string,
     public publicKey: string,
-    public cost: number
+    public cost: number,
+    public owner: string
   ) {}
 }
 
@@ -24,6 +27,7 @@ export class Software {
     public ipfsHash: string,
     public paramType: string,
     public description: string,
-    public cost: number
+    public cost: number,
+    public owner: string
   ) {}
 }

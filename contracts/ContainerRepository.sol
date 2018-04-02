@@ -32,12 +32,9 @@ contract ContainerRepository {
     function getContainerIDs() public view returns(bytes32[] ids) {
         return containerIdentifiers;
     }
-    function getContainerPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
-        return(containerInventory[_id].cost, containerInventory[_id].owner);
-    }
 
-    function getContainerByID(bytes32 _id) public view returns(string containerDockerID, string publicKey, uint cost) {
-        return (containerInventory[_id].containerDockerID, containerInventory[_id].pubKey, containerInventory[_id].cost);
+    function getContainerByID(bytes32 _id) public view returns(string containerDockerID, string publicKey, uint cost, address owner) {
+        return (containerInventory[_id].containerDockerID, containerInventory[_id].pubKey, containerInventory[_id].cost, containerInventory[_id].owner);
     }
 
 }
