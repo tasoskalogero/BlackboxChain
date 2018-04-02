@@ -32,7 +32,7 @@ export class SoftwareService {
       });
   }
 
-  async getSoftwareFromDB() {
+  async getSoftwareInfo() {
     let fetchedSoftware = [];
 
     let deployedSoftwareRepository = await this.SoftwareRepository.deployed();
@@ -40,25 +40,21 @@ export class SoftwareService {
       let swIDs = await deployedSoftwareRepository.getSoftwareIDs.call();
       console.log("SoftwareIDs " + swIDs);
       for (let i = 0; i < swIDs.length; ++i) {
-        let swInfo = await deployedSoftwareRepository.getSoftwareByID.call(
-          swIDs[i]
-        );
-        let id = swInfo[0];
-        let bdbId = swInfo[1];
+        let swInfo = await deployedSoftwareRepository.getSoftwareByID.call(swIDs[i]);
 
-        let asset = await this.bdbService.queryDB(bdbId);
+        let swFilename = swInfo[0];
+        let swIpfsHash = swInfo[1];
+        let swParamTypes = swInfo[2];
+        let swDescription = swInfo[3];
+        let costEther = this.web3.utils.fromWei(swInfo[4].toNumber().toString(), 'ether');
 
-        let filename = asset.filename;
-        let paramType = asset.paramType;
-        let description = asset.description;
-        let cost = this.web3.utils.fromWei(asset.cost, "ether");
         let softwareToAdd = new Software(
-          id,
-          filename,
-          paramType,
-          description,
-          cost,
-          bdbId
+            swIDs[i],
+            swFilename,
+            swIpfsHash,
+            swParamTypes,
+            swDescription,
+            costEther
         );
 
         fetchedSoftware.push(softwareToAdd);
@@ -72,18 +68,18 @@ export class SoftwareService {
     return fetchedSoftware;
   }
 
-  async addSoftware(_filename, _ipfsHash, _paramType, _description, cost) {
-    let txId = await this.bdbService.createNewSoftware(
-      _filename,
-      _ipfsHash,
-      _paramType,
-      _description,
-      cost
-    );
+  async addSoftware(_filename, _ipfsHash, _paramType, _description, _cost) {
+    // let txId = await this.bdbService.createNewSoftware(
+    //   _filename,
+    //   _ipfsHash,
+    //   _paramType,
+    //   _description,
+    //   _cost
+    // );
 
-    this.loggerService.add("Software stored on BigchainDB - " + txId);
+    // this.loggerService.add("Software stored on BigchainDB - " + txId);
     let deployedSoftwareRepository = await this.SoftwareRepository.deployed();
-    return await deployedSoftwareRepository.addNewSoftware(txId, {
+    return await deployedSoftwareRepository.addNewSoftware(_filename, _ipfsHash,_paramType,_description, _cost, {
       from: this.currentAccount
     });
   }

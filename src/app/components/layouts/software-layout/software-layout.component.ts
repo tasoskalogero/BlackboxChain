@@ -10,7 +10,6 @@ import {Software} from '../../../models/models';
   styleUrls: ['./software-layout.component.css']
 })
 export class SoftwareLayoutComponent implements OnInit  {
-  // softwareForm: FormGroup;
 
   fetchedSoftware: Software[];
   selectedSoftware: Software;
@@ -29,7 +28,7 @@ export class SoftwareLayoutComponent implements OnInit  {
 
   getSoftware(): void {
     this.clear();
-    this.softwareService.getSoftwareFromDB()
+    this.softwareService.getSoftwareInfo()
       .then(software => {
         this.fetchedSoftware = software;
       })
@@ -37,7 +36,6 @@ export class SoftwareLayoutComponent implements OnInit  {
 
   setSelected(software: Software) {
     this.selectedSoftware = software;
-    // this.softwareForm.controls['selection'].setValue(software);
     console.log('[SELECTED SOFTWARE]',software);
     this.communicationService.announceSoftware(software);
   }

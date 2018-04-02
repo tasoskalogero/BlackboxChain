@@ -13,7 +13,7 @@ export class ContainerComponent implements OnInit {
   @ViewChild("pubFileInput") pubKeyFileInputVariable: any; //used by ViewChile
 
   containerForm: FormGroup;
-  statusArray = [];
+  // statusArray = [];
 
   private web3: any;
   private txStatus: any;

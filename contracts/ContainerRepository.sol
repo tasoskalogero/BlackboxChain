@@ -2,40 +2,42 @@ pragma solidity ^0.4.16;
 
 contract ContainerRepository {
 
-  struct ContainerInfo {
-    bytes32 id;
-    string bdbId;
-    address owner;
-  }
+    struct ContainerInfo {
+        bytes32 containerId;        //keccak (containerDockerID, now)
+        string containerDockerID;
+        string pubKey;
+        uint cost;     //in wei
+        address owner;
+    }
 
-  bytes32[] containerIdentifiers;
-  //id => CodeInfo
-  mapping(bytes32 => ContainerInfo) containerInventory;
+    bytes32[] containerIdentifiers;
+    //id => CodeInfo
+    mapping(bytes32 => ContainerInfo) containerInventory;
 
 
-  function addNewContainer(string _bdbId) public
-  returns(bool success) {
+    function addNewContainer(string _dockerID, string _publicKey, uint _cost) public
+    returns(bool success) {
 
-    bytes32 newId = keccak256(_bdbId, now);
-    containerIdentifiers.push(newId);
+        bytes32 id = keccak256(_dockerID, now);
+        containerIdentifiers.push(id);
 
-    containerInventory[newId].id = newId;
-    containerInventory[newId].bdbId = _bdbId;
-    containerInventory[newId].owner = msg.sender;
-    return true;
-  }
+        containerInventory[id].containerId = id;
+        containerInventory[id].containerDockerID = _dockerID;
+        containerInventory[id].pubKey = _publicKey;
+        containerInventory[id].cost = _cost;
+        containerInventory[id].owner = msg.sender;
+        return true;
+    }
 
-  function getContainerIDs() public view returns(bytes32[] ids) {
-    return containerIdentifiers;
-  }
+    function getContainerIDs() public view returns(bytes32[] ids) {
+        return containerIdentifiers;
+    }
+    function getContainerPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
+        return(containerInventory[_id].cost, containerInventory[_id].owner);
+    }
 
-  //TODO fix in payment
-//  function getContainerPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
-//    return(containerInventory[_id].cost, containerInventory[_id].owner);
-//  }
-
-  function getContainerByID(bytes32 _id) public view returns(bytes32 id,string bdbId) {
-    return (containerInventory[_id].id, containerInventory[_id].bdbId);
-  }
+    function getContainerByID(bytes32 _id) public view returns(string containerDockerID, string publicKey, uint cost) {
+        return (containerInventory[_id].containerDockerID, containerInventory[_id].pubKey, containerInventory[_id].cost);
+    }
 
 }

@@ -5,17 +5,13 @@
       <li style="cursor: pointer" class="list-group-item" *ngFor="let software of fetchedSoftware"
           [ngClass]="{'active': software == selectedSoftware}"
           (click)="setSelected(software)">
-          <!--IPFS Hash: <strong>{{software.ipfsHash}}</strong>-->
-          <!--<br/>-->
           Filename: <strong>{{software.filename}}</strong>
           <br/>
           Parameters description: {{software.paramType}}
           <br/>
           Description: {{software.description}}
           <br/>
-          <strong>BigchainDB TxID:</strong> {{software.bdbId}}
-          <br/>
-          <strong>Cost (ETH): </strong> {{software.cost}}
+          <strong>Cost (in ETH): </strong> {{software.cost}}
           <br/>
       </li>
     </ul>

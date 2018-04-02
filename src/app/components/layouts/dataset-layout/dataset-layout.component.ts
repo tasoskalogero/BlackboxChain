@@ -27,7 +27,7 @@ export class DatasetLayoutComponent implements OnInit {
 
   getDatasets(): void {
     this.clear();
-    this.datasetService.getDatasetFromDB().then(datasets => {
+    this.datasetService.getDatasets().then(datasets => {
       this.fetchedDatasets = datasets;
     });
   }

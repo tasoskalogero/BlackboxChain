@@ -3,8 +3,11 @@ pragma solidity ^0.4.18;
 contract DatasetRepository {
 
   struct DatasetInfo {
-    bytes32 id;
-    string bdbId;
+    bytes32 dsId;     //keccak from bcdbTxId
+    string dsName;
+    string dsDescription;
+    uint dsCost;              //Wei
+    string bdbTxID;
     address owner;
   }
 
@@ -12,15 +15,18 @@ contract DatasetRepository {
   //dsId => DatasetInfo
   mapping(bytes32 => DatasetInfo) datasetInventory;
 
-  function addNewDataset(string _bdbId) public
-    returns(bool success) {
+  function addNewDataset(string _dsName, string _dsDescription, uint _dsCost, string _bdbTxID) public
+  returns(bool success) {
 
-    bytes32 newId = keccak256(_bdbId, now);
-    dsIdentifiers.push(newId);
+    bytes32 id = keccak256(_bdbTxID);
+    dsIdentifiers.push(id);
 
-    datasetInventory[newId].id = newId;
-    datasetInventory[newId].bdbId = _bdbId;
-    datasetInventory[newId].owner = msg.sender;
+    datasetInventory[id].dsId = id;
+    datasetInventory[id].dsName =_dsName;
+    datasetInventory[id].dsDescription = _dsDescription;
+    datasetInventory[id].dsCost = _dsCost;
+    datasetInventory[id].bdbTxID = _bdbTxID;
+    datasetInventory[id].owner = msg.sender;
 
     return true;
   }
@@ -29,12 +35,14 @@ contract DatasetRepository {
     return dsIdentifiers;
   }
 
-  //TODO fix in payment
-//  function getDatasetPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
-//    return(datasetInventory[_id].dsCost, datasetInventory[_id].owner);
-//  }
-
-  function getDatasetByID(bytes32 _id) public view returns(bytes32 id, string bdbId) {
-    return (datasetInventory[_id].id, datasetInventory[_id].bdbId);
+  function getDatasetPurchaseInfoByID(bytes32 _id) public view returns(uint cost, address owner) {
+    return(datasetInventory[_id].dsCost, datasetInventory[_id].owner);
   }
+
+  function getDatasetByID(bytes32 _id) public view returns(string datasetName, string datasetDescription, uint cost, string bdbTxID) {
+
+    return (datasetInventory[_id].dsName, datasetInventory[_id].dsDescription, datasetInventory[_id].dsCost, datasetInventory[_id].bdbTxID);
+  }
+
+
 }

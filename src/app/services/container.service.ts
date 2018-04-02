@@ -30,7 +30,7 @@ export class ContainerService {
             });
     }
 
-    async getContainersFromDB() {
+    async getContainers() {
         let fetchedContainers = [];
         let deployedContainerRepository = await this.ContainerRepository.deployed();
         try {
@@ -39,16 +39,13 @@ export class ContainerService {
 
             for (let i = 0; i < containerIDs.length; ++i) {
                 let containerInfo = await deployedContainerRepository.getContainerByID.call(containerIDs[i]);
-                let id = containerInfo[0];
-                let bdbId = containerInfo[1];
 
-                let asset = await this.bdbService.queryDB(bdbId);
-                let containerDockerID = asset.container_ID;
-                let publicKey = asset.pubKey;
-                let cost = this.web3.utils.fromWei(asset.cost, 'ether');
-                let status = asset.status;
+                let containerID = containerIDs[i];
+                let containerDockerID = containerInfo[0];
+                let pubKey = containerInfo[1];
+                let costEther = this.web3.utils.fromWei(containerInfo[2].toNumber().toString(), 'ether');
 
-                let containerToAdd = new Container(id, containerDockerID, publicKey, cost, bdbId);
+                let containerToAdd = new Container(containerID, containerDockerID, pubKey, costEther);
                 fetchedContainers.push(containerToAdd);
             }
             return fetchedContainers;
@@ -60,12 +57,8 @@ export class ContainerService {
 
     async addContainer(containerID: string, publicKey: File, cost: string) {
         let pubkeyContents = await this.readFile(publicKey);
-        let txId = await this.bdbService.createNewContainer(containerID, pubkeyContents, cost);
-
-        this.loggerService.add('Container stored on BigchainDB - ' + txId );
-
         let deployedContainerRepository = await this.ContainerRepository.deployed();
-        return await deployedContainerRepository.addNewContainer(txId, {from: this.currentAccount});
+        return await deployedContainerRepository.addNewContainer(containerID, pubkeyContents, cost, {from: this.currentAccount});
     }
 
     readFile(file: File) {

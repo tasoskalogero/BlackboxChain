@@ -29,7 +29,7 @@ export class ContainerLayoutComponent implements OnInit {
 
   getContainers(): void {
     this.clear();
-    this.containerService.getContainersFromDB().then(containers => {
+    this.containerService.getContainers().then(containers => {
       containers.map(
         container =>
           (this.containerIDToPubKey[container.dockerID] = container.publicKey)
@@ -50,7 +50,6 @@ export class ContainerLayoutComponent implements OnInit {
   }
 
   downloadPublicKey(containerID) {
-    // let saveAs = require('file-saver');
     let pubKeyContents = this.containerIDToPubKey[containerID];
     let file = new Blob([pubKeyContents], { type: "text;charset=utf-8" });
     FileSaver.saveAs(file, "publicKey.pem");

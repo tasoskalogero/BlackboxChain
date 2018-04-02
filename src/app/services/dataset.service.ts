@@ -31,78 +31,59 @@ export class DatasetService {
       });
   }
 
-  async getDatasetFromDB() {
-    let datasets = [];
-    let deployedDatasetRepository = await this.DatasetRepository.deployed();
-    try {
-      let datasetIDs = await deployedDatasetRepository.getDatasetIDs.call();
-      console.log("DatasetIDs " + datasetIDs);
+  async getDatasets() {
+      let datasets = [];
+      let deployedDatasetRepository = await this.DatasetRepository.deployed();
+      try {
+          let datasetIDs = await deployedDatasetRepository.getDatasetIDs.call();
+          console.log("DatasetIDs " + datasetIDs);
 
-      for (let i = 0; i < datasetIDs.length; ++i) {
-        let datasetInfo = await deployedDatasetRepository.getDatasetByID.call(
-          datasetIDs[i]
-        );
-        let id = datasetInfo[0];
-        let bdbId = datasetInfo[1];
+          for(let i = 0; i < datasetIDs.length; ++i) {
+              let dsInfo = await deployedDatasetRepository.getDatasetByID.call(datasetIDs[i]);
 
-        let asset = await this.bdbService.queryDB(bdbId);
+              let dsID = datasetIDs[i];
+              let datasetName = dsInfo[0];
+              let datasetDescription = dsInfo[1];
+              let costEther = this.web3.utils.fromWei(dsInfo[2].toNumber().toString(), 'ether');
+              let bdbTxID = dsInfo[3];
 
-        let datasetName = asset.name;
-        let datasetDescription = asset.description;
-        let cost = this.web3.utils.fromWei(asset.cost, "ether");
-
-        let datasetToAdd = new Dataset(
-          id,
-          datasetName,
-          datasetDescription,
-          cost,
-          bdbId
-        );
-        datasets.push(datasetToAdd);
+              let datasetToAdd = new Dataset(dsID,datasetName, datasetDescription, costEther, bdbTxID);
+              datasets.push(datasetToAdd);
+          }
+      } catch(e) {
+          console.log(e);
+          console.error('Error occured whild getting number of data');
       }
-    } catch (e) {
-      console.log(e);
-      console.error("Error occured whild getting number of data");
-    }
-    return datasets;
+      return datasets;
+
   }
 
-  async addDataset(
-    ipfsHash: string,
-    dsName: string,
-    dsDescription: string,
-    cost: string
+  async addDataset(datasetFile: File, dsName: string, dsDescription: string, cost: string
   ) {
-    // let encryptedDatasetContents = await this.readFile(ipfsHash);
-    let txId = await this.bdbService.createNewDataset(
-      ipfsHash,
-      dsName,
-      dsDescription,
-      cost
-    );
-    this.loggerService.add("Dataset stored on BigchainDB - " + txId);
+    let encryptedDatasetContents = await this.readFile(datasetFile);
+    let bdbTxID = await this.bdbService.createNewDataset(encryptedDatasetContents, dsName, dsDescription, this.web3.utils.fromWei(cost, 'ether'));
+
+    this.loggerService.add("Dataset stored on BigchainDB - " + bdbTxID);
 
     let deployedDatasetRepository = await this.DatasetRepository.deployed();
 
-    return await deployedDatasetRepository.addNewDataset(txId, {
-      from: this.currentAccount
+    return await deployedDatasetRepository.addNewDataset(dsName, dsDescription, cost, bdbTxID, {from: this.currentAccount});
+  }
+
+  readFile(dataFile) {
+    return this.readContents(dataFile);
+  }
+
+  private readContents(data) {
+    let reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onload = function(event) {
+        let contents = reader.result;
+        resolve(contents);
+      };
+
+      reader.readAsBinaryString(data);
     });
   }
-
-  // readFile(dataFile) {
-  //   return this.readContents(dataFile);
-  // }
-
-  // private readContents(data) {
-  //   let reader = new FileReader();
-  //
-  //   return new Promise((resolve, reject) => {
-  //     reader.onload = function(event) {
-  //       let contents = reader.result;
-  //       resolve(contents);
-  //     };
-  //
-  //     reader.readAsBinaryString(data);
-  //   });
-  // }
 }
