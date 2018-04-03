@@ -70,4 +70,9 @@ contract Payment {
         paymentEntries[paymentID].softwareOwner.transfer(paymentEntries[paymentID].softwareCost);
         return true;
     }
+
+    function returnFunds(bytes32 paymentID) public returns(bool) {
+        require(msg.sender == ORACLE);
+        paymentEntries[paymentID].buyer.transfer(paymentEntries[paymentID].totalAmount);
+    }
 }

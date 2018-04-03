@@ -15,6 +15,7 @@ const PaymentJSON = require(path.join(
 ));
 
 let web3;
+const ERROR_STATUS = "FAILURE";
 
 // Add headers
 app.use(function (req, res, next) {
@@ -59,7 +60,7 @@ app.post("/exec/create", async (request, res, next) => {
     let datasetAssets = await conn.searchAssets(datasetBdbTxID);
 
     if (datasetAssets.length === 0) {
-        res.send([300, codes.getErrorMessage(300)]);
+        res.send([ERROR_STATUS, codes.getErrorMessage(300)]);
         return next();
     }
 
@@ -102,7 +103,15 @@ app.post("/exec/create", async (request, res, next) => {
         });
         post_req.write(bodyCmd);
     }).then(([status, msg]) => {
-        res.send([status, msg]);
+        console.log([status, msg]);
+        let error_codes_array = codes.getErrorCodes();
+        if (error_codes_array.includes(parseInt(status))) {
+            console.log("ERROR");
+            res.send([ERROR_STATUS, codes.getErrorMessage(parseInt(status))]);
+        } else {
+            res.send([status, msg]);
+        }
+
     });
 });
 
@@ -138,7 +147,10 @@ app.post("/exec/run", (request, res) => {
 
             res.on("end", () => {
                 console.log("RESULT:", output);
-                resolve(output);
+                if(status === 200)
+                    resolve(output);
+                else
+                    resolve(status);
             });
 
             res.on("error", e => {
@@ -149,19 +161,39 @@ app.post("/exec/run", (request, res) => {
         post_req.write(bodyCmd);
         post_req.end();
     }).then(async msg => {
-        msg = msg.replace(/[\u0001\u0000\u0004]/g, "");
-        msg = msg.trim();
-        let error_codes_array = [600, 610, 620, 630, 640, 650];
-        if (error_codes_array.includes(parseInt(msg))) {
-            let error_msg = codes.getErrorMessage(parseInt(msg));
-            res.send(["Failure", error_msg]);
-        } else {
-            await execPayment(paymentID);
-            msg = msg.replace(/\//g, ""); // remove / from ipfs address result
-            res.send(["Success", msg]);
+        try {
+            msg = msg.replace(/[\u0001\u0000\u0004]/g, "");
+            msg = msg.trim();
+            let error_codes_array = codes.getErrorCodes();
+
+            if (error_codes_array.includes(parseInt(msg))) {
+                let error_msg = codes.getErrorMessage(parseInt(msg));
+                await revertPayment(paymentID);
+                res.send(["Failure", error_msg]);
+            } else {
+                await execPayment(paymentID);
+                msg = msg.replace(/\//g, ""); // remove / from ipfs address result
+                res.send(["Success", msg]);
+            }
+        } catch (e) {
+            await revertPayment(paymentID);
+            console.log("Returning funds...");
+            res.send(["Failure", "Funds returned"]);
         }
     });
 });
+
+async function revertPayment(paymentID) {
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
+    let PaymentContract = initContract(PaymentJSON);
+    let deployedPayment = await PaymentContract.deployed();
+    try {
+        let success = await deployedPayment.returnFunds(paymentID, {from: currentAccount});
+    } catch (e) {
+        console.log(e);
+    }
+}
 
 async function execPayment(paymentID) {
     let accounts = await web3.eth.getAccounts();
