@@ -12,7 +12,6 @@ contract Order {
         bytes32 datasetID;
         bytes32 softwareID;
 
-        bool valid;             //set TRUE by oracle if totalAmount is equal to the cost of the given software,container,dataset
         address buyer;
         uint totalAmount;
     }
@@ -27,13 +26,8 @@ contract Order {
     bytes32[] orderIDs;
     mapping(bytes32 => Order) orderRegistry;
 
-    function validateOrder(bytes32 orderID) public returns(bool) {
-        require(msg.sender == ORACLE);
-        orderRegistry[orderID].valid = true;
-    }
-
-    function getOrderByID(bytes32 orderID) public view returns(bytes32 _contID, bytes32 _dsID, bytes32 _swID, bool _valid, uint _amount){
-        return(orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].valid, orderRegistry[orderID].totalAmount);
+    function getOrderByID(bytes32 orderID) public view returns(bytes32 _contID, bytes32 _dsID, bytes32 _swID, uint _amount){
+        return(orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].totalAmount);
 
     }
 
