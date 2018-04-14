@@ -68,8 +68,8 @@ async function checkDataset(datasetID) {
         let cost = datasetAssets[0].data.cost;
 
         let computedChecksum = md5(dsName+ipfsHash+description+cost);
-        console.log(checksum  === computedChecksum);
-        return checksum === computedChecksum;
+        let match = checksum === computedChecksum;
+        return ([match, bcdbID]);
     } catch (e) {
         console.log(e);
     }
@@ -97,15 +97,49 @@ async function checkSoftware(softwareID) {
         let cost = softwareAssets[0].data.cost;
 
         let computedChecksum = md5(filename+ipfsHash+paramType+description+cost);
-        console.log(checksum  === computedChecksum);
-        return checksum === computedChecksum;
+        let match = checksum === computedChecksum;
+        return ([match, bcdbID]);
     } catch (e) {
         console.log(e);
     }
 }
 
+function getContainerStatus(containerID) {
+
+    let path = "/containers/" + containerID + "/json";
+     let options = {
+        socketPath: "/var/run/docker.sock",
+        path: path,
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
+    return new Promise(resolve => {
+        let req = http.request(options, function (res) {
+            res.setEncoding("utf8");
+            let status = res.statusCode;
+            console.log("STATUS: " + status);
+
+            let rawData = "";
+            res
+                .on("data", function (chunk) {
+                    rawData += chunk;
+                })
+                .on("end", () => {
+                    resolve(JSON.parse(rawData)["State"]["Status"] === 'running');
+                })
+                .on("error", e => {
+                    console.log("ERROR", e);
+                    resolve(1, "Failed to inspect container.");
+                });
+        });
+        req.end();
+    })
+}
+
 app.post("/exec/create", async (request, res, next) => {
-    let containerID = request.body.id;
+    let containerID = request.body.containerID;
     let softwareID = request.body.softwareID;
     let datasetID = request.body.datasetID;
     let userPubKey = request.body.pubUserKey;
@@ -115,19 +149,24 @@ app.post("/exec/create", async (request, res, next) => {
     console.log(datasetID);
     console.log(userPubKey);
 
-    let correctDataset = checkDataset(datasetID);
-    let correctSoftware = checkSoftware(softwareID);
+    let datasetData = await checkDataset(datasetID);
+    let softwareData = await checkSoftware(softwareID);
 
-    if(correctDataset && correctSoftware && liveContainer) {
+    let containerStatus  = await getContainerStatus(containerID);
+    console.log(datasetData[0], softwareData[0], containerStatus);
 
+    if(datasetData[0] && softwareData[0] && containerStatus ) {
+        console.log("--------------------ALL SET------------------------");
+        
     }
 
-    let datasetAssets = await conn.searchAssets(datasetBdbTxID);
 
-    if (datasetAssets.length === 0) {
-        res.send([ERROR_STATUS, codes.getErrorMessage(300)]);
-        return next();
-    }
+    // let datasetAssets = await conn.searchAssets(datasetBdbTxID);
+    //
+    // if (datasetAssets.length === 0) {
+    //     res.send([ERROR_STATUS, codes.getErrorMessage(300)]);
+    //     return next();
+    // }
 
     let commands = ["./wrapper.sh", datasetBdbTxID, swIPFSHash, userPubKey];
     let bodyCmd = JSON.stringify({
