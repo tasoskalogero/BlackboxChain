@@ -80,11 +80,12 @@ export class ComputationLayoutComponent implements OnInit {
                     } else {
                         let exec_id = JSON.parse(res[1]).Id;
 
-                        let paymentID = await this.paymentService.createPayment(
-                            this.container,
-                            this.dataset,
-                            this.software
-                        );
+                        // let paymentID = await this.paymentService.createPayment(
+                        //     this.container,
+                        //     this.dataset,
+                        //     this.software
+                        // );
+                        let paymentID = "";
                         this.dockerCommunicationService
                             .execStart(exec_id, paymentID)
                             .subscribe(res => {

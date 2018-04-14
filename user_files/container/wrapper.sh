@@ -22,11 +22,11 @@ clean_files() {
 # $1 BigchainDB Transaction ID of dataset
 # $2 IPFS hash of software
 # $3 user's public key
-dsBdbTxID=$1
+dsIPFSHash=$1
 swIPFSHash=$2
 user_pub_key="$3"
 
-# echo $dsBdbTxID
+# echo $dsIPFSHash
 # echo $swIPFSHash
 # echo $user_pub_key
 
@@ -43,14 +43,13 @@ RESULT_FILE="ipfs_encrypted.bin"
 
 echo "$user_pub_key" > $USER_PUB_KEY
 
-python3 $FETCH_DATASET_FILE $dsBdbTxID $CIPHERTEXT_FILENAME
+python3 $FETCH_DATASET_FILE $dsIPFSHash $CIPHERTEXT_FILENAME
 if [ "$?" = "1" ]; then
 	error_exit 600
 fi
 
 plaintext_data=$(./decrypt.sh -f $CIPHERTEXT_FILENAME -p $CONTAINER_PRIVATE_KEY)
 if [ "$?" = "1" ]; then
-	echo "Error decrypting user data. Aborting."
 	error_exit 610
 fi
 

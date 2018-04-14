@@ -3,22 +3,24 @@ import argparse
 import ipfsapi
 import sys
 
-INSIDE_DOCKER_CONTAINER = True
-
 parser = argparse.ArgumentParser(description='Read data from a given IPFS hash and create a file. Returns the name of the created file.')
-parser.add_argument("ipfsHash", help="ipfs hash of the data", type=str)
+parser.add_argument("swIPFSHash", help="ipfs hash of the data", type=str)
 parser.add_argument("swFilename", help="the name of the created file", type=str)
 args = parser.parse_args()
 
 try:
-	if(INSIDE_DOCKER_CONTAINER):
-		HOST_IP = "docker.for.mac.host.internal"
-	else:
-		HOST_IP = "127.0.0.1"
+		# bdb_root_url = 'docker.for.mac.host.internal:59984'
 
+	# bdb = BigchainDB(bdb_root_url)
 
-	api = ipfsapi.connect(HOST_IP, 5001)
+	# GET THE HASH OF THE SOFTWARE ON IPFS FROM BIGCHAINDB
+	# asset = bdb.assets.get(search=args.bdbTxID)
+
+	# swIPFSHash = asset[0]['data']['ipfsHash']
+
+	api = ipfsapi.connect('docker.for.mac.host.internal', 5001)
+	# WRITE FILE WITH THE RETRIEVED SOFTWARE
 	with open(args.swFilename, 'wb+') as out_file: 
-		out_file.write(api.cat(args.ipfsHash))
+		out_file.write(api.cat(args.swIPFSHash))
 except:
 	sys.exit(1);

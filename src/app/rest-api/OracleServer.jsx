@@ -69,7 +69,7 @@ async function checkDataset(datasetID) {
 
         let computedChecksum = md5(dsName+ipfsHash+description+cost);
         let match = checksum === computedChecksum;
-        return ([match, bcdbID]);
+        return ([match, ipfsHash]);
     } catch (e) {
         console.log(e);
     }
@@ -98,7 +98,7 @@ async function checkSoftware(softwareID) {
 
         let computedChecksum = md5(filename+ipfsHash+paramType+description+cost);
         let match = checksum === computedChecksum;
-        return ([match, bcdbID]);
+        return ([match, ipfsHash]);
     } catch (e) {
         console.log(e);
     }
@@ -157,66 +157,57 @@ app.post("/exec/create", async (request, res, next) => {
 
     if(datasetData[0] && softwareData[0] && containerStatus ) {
         console.log("--------------------ALL SET------------------------");
-        
-    }
-
-
-    // let datasetAssets = await conn.searchAssets(datasetBdbTxID);
-    //
-    // if (datasetAssets.length === 0) {
-    //     res.send([ERROR_STATUS, codes.getErrorMessage(300)]);
-    //     return next();
-    // }
-
-    let commands = ["./wrapper.sh", datasetBdbTxID, swIPFSHash, userPubKey];
-    let bodyCmd = JSON.stringify({
-        Cmd: commands,
-        AttachStdout: true
-    });
-
-    let path = "/containers/" + containerID + "/exec";
-    let post_options = {
-        socketPath: "/var/run/docker.sock",
-        path: path,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Content-Length": Buffer.byteLength(bodyCmd)
-        }
-    };
-    new Promise(resolve => {
-        let post_req = http.request(post_options, function (res) {
-            res.setEncoding("utf8");
-            let status = res.statusCode;
-            console.log("STATUS: " + status);
-
-            let rawData = "";
-            res
-                .on("data", function (chunk) {
-                    rawData += chunk;
-                    console.log("Response: " + chunk);
-                })
-                .on("end", () => {
-                    console.log("RESULT = ", rawData);
-                    resolve([status, rawData]);
-                })
-                .on("error", e => {
-                    console.log("ERROR", e);
-                    resolve(1, "Failed to create exec command.");
-                });
+        let commands = ["./wrapper.sh", datasetData[1], softwareData[1], userPubKey];
+        let bodyCmd = JSON.stringify({
+            Cmd: commands,
+            AttachStdout: true
         });
-        post_req.write(bodyCmd);
-    }).then(([status, msg]) => {
-        console.log([status, msg]);
-        let error_codes_array = codes.getErrorCodes();
-        if (error_codes_array.includes(parseInt(status))) {
-            console.log("ERROR");
-            res.send([ERROR_STATUS, codes.getErrorMessage(parseInt(status))]);
-        } else {
-            res.send([status, msg]);
-        }
+        let path = "/containers/" + containerID + "/exec";
+        let post_options = {
+            socketPath: "/var/run/docker.sock",
+            path: path,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(bodyCmd)
+            }
+        };
+        new Promise(resolve => {
+            let post_req = http.request(post_options, function (res) {
+                res.setEncoding("utf8");
+                let status = res.statusCode;
+                console.log("STATUS: " + status);
 
-    });
+                let rawData = "";
+                res
+                    .on("data", function (chunk) {
+                        rawData += chunk;
+                        console.log("Response: " + chunk);
+                    })
+                    .on("end", () => {
+                        console.log("RESULT = ", rawData);
+                        resolve([status, rawData]);
+                    })
+                    .on("error", e => {
+                        console.log("ERROR", e);
+                        resolve(1, "Failed to create exec command.");
+                    });
+            });
+            post_req.write(bodyCmd);
+        }).then(([status, msg]) => {
+            console.log([status, msg]);
+            let error_codes_array = codes.getErrorCodes();
+            if (error_codes_array.includes(parseInt(status))) {
+                console.log("ERROR");
+                res.send([ERROR_STATUS, codes.getErrorMessage(parseInt(status))]);
+            } else {
+                res.send([status, msg]);
+            }
+
+        });
+    } else {
+        console.log("TODO: CANCEL PAYMENT IN SMART CONTRACT");
+    }
 });
 
 app.post("/exec/run", (request, res) => {
@@ -272,15 +263,15 @@ app.post("/exec/run", (request, res) => {
 
             if (error_codes_array.includes(parseInt(msg))) {
                 let error_msg = codes.getErrorMessage(parseInt(msg));
-                await revertPayment(paymentID);
+                // await revertPayment(paymentID);
                 res.send(["Failure", error_msg]);
             } else {
-                await execPayment(paymentID);
+                // await execPayment(paymentID);
                 msg = msg.replace(/\//g, ""); // remove / from ipfs address result
                 res.send(["Success", msg]);
             }
         } catch (e) {
-            await revertPayment(paymentID);
+            // await revertPayment(paymentID);
             console.log("Returning funds...");
             res.send(["Failure", "Funds returned"]);
         }
