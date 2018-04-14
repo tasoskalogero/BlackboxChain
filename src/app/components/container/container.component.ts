@@ -13,7 +13,6 @@ export class ContainerComponent implements OnInit {
   @ViewChild("pubFileInput") pubKeyFileInputVariable: any; //used by ViewChile
 
   containerForm: FormGroup;
-  // statusArray = [];
 
   private web3: any;
   private txStatus: any;
@@ -27,18 +26,15 @@ export class ContainerComponent implements OnInit {
 
   ngOnInit() {
     this.createForm();
-    // this.statusArray = [];
-    // this.statusArray.push("Running");
-    // this.statusArray.push("Closed");
     this.web3 = this.web3Service.getWeb3();
   }
 
   private createForm() {
     this.containerForm = this.fb.group({
       dockerID: ["", Validators.required],
+      ipfsHash: ["", Validators.required],
       publicKey: [null, Validators.required], //store only filename
       cost: ["", Validators.required] //in Wei
-      // status: ['', Validators.required]   //running/not running
     });
   }
 
@@ -55,12 +51,13 @@ export class ContainerComponent implements OnInit {
     let formModel = this.containerForm.value;
     this.setTxStatus("Initiating transaction... (please wait)");
     console.log(formModel["dockerID"]);
+      console.log(formModel["ipfsHash"]);
     console.log(formModel["publicKey"]);
     console.log(formModel["cost"]);
-    // console.log(formModel['status']);
     this.containerService
       .addContainer(
         formModel["dockerID"],
+        formModel["ipfsHash"],
         formModel["publicKey"],
         this.web3.utils.toWei(formModel["cost"].toString(), "ether")
       )

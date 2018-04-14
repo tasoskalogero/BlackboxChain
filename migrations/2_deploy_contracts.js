@@ -1,5 +1,5 @@
-var SoftwareRepository = artifacts.require("./SoftwareRepository.sol");
+var SoftwareRegistry = artifacts.require("./SoftwareRegistry.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(SoftwareRepository);
+  deployer.deploy(SoftwareRegistry);
 };

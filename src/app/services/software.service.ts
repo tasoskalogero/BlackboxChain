@@ -1,16 +1,17 @@
 import { Injectable } from "@angular/core";
 import { Web3Service } from "../util/web3.service";
-import software_repository from "../../../build/contracts/SoftwareRepository.json";
+import software_registry from "../../../build/contracts/SoftwareRegistry.json";
 import Web3 from "web3";
 import { Software } from "../models/models";
 import { BdbService } from "./bdb.service";
 import { LoggerService } from "./logger.service";
+import {Md5} from 'ts-md5/dist/md5';
 
 @Injectable()
 export class SoftwareService {
   private currentAccount: string;
   private web3: Web3;
-  private SoftwareRepository: any;
+  private SoftwareRegistry: any;
 
   constructor(
     private bdbService: BdbService,
@@ -26,37 +27,37 @@ export class SoftwareService {
     });
 
     this.web3Service
-      .artifactsToContract(software_repository)
-      .then(SoftwareRepo => {
-        this.SoftwareRepository = SoftwareRepo;
+      .artifactsToContract(software_registry)
+      .then(SoftwareReg => {
+        this.SoftwareRegistry = SoftwareReg;
       });
   }
 
   async getSoftwareInfo() {
     let fetchedSoftware = [];
 
-    let deployedSoftwareRepository = await this.SoftwareRepository.deployed();
+    let deployedSoftwareRegistry = await this.SoftwareRegistry.deployed();
     try {
-      let swIDs = await deployedSoftwareRepository.getSoftwareIDs.call();
-      console.log("SoftwareIDs " + swIDs);
-      for (let i = 0; i < swIDs.length; ++i) {
-        let swInfo = await deployedSoftwareRepository.getSoftwareByID.call(swIDs[i]);
+      let softwareIDs = await deployedSoftwareRegistry.getSoftwareIDs.call();
+      console.log("SoftwareIDs " + softwareIDs);
+      for (let i = 0; i < softwareIDs.length; ++i) {
+        let swInfo = await deployedSoftwareRegistry.getSoftwareByID.call(softwareIDs[i]);
 
-        let swFilename = swInfo[0];
-        let swIpfsHash = swInfo[1];
-        let swParamTypes = swInfo[2];
-        let swDescription = swInfo[3];
-        let costEther = this.web3.utils.fromWei(swInfo[4].toNumber().toString(), 'ether');
-        let owner = swInfo[5];
+        let bcdbID = swInfo[0];
+
+        let bcdbSoftwareAsset = await this.bdbService.queryDB(bcdbID);
+
+        let swFilename = bcdbSoftwareAsset.filename;
+        let swParamTypes = bcdbSoftwareAsset.paramType;
+        let swDescription = bcdbSoftwareAsset.description;
+        let costEther = this.web3.utils.fromWei(bcdbSoftwareAsset.cost, 'ether');
 
         let softwareToAdd = new Software(
-            swIDs[i],
+            softwareIDs[i],
             swFilename,
-            swIpfsHash,
             swParamTypes,
             swDescription,
-            costEther,
-            owner
+            costEther
         );
 
         fetchedSoftware.push(softwareToAdd);
@@ -71,18 +72,22 @@ export class SoftwareService {
   }
 
   async addSoftware(_filename, _ipfsHash, _paramType, _description, _cost) {
-    // let txId = await this.bdbService.createNewSoftware(
-    //   _filename,
-    //   _ipfsHash,
-    //   _paramType,
-    //   _description,
-    //   _cost
-    // );
+    let bcdbTxID = await this.bdbService.createNewSoftware(
+      _filename,
+      _ipfsHash,
+      _paramType,
+      _description,
+      _cost
+    );
 
-    // this.loggerService.add("Software stored on BigchainDB - " + txId);
-    let deployedSoftwareRepository = await this.SoftwareRepository.deployed();
-    return await deployedSoftwareRepository.addNewSoftware(_filename, _ipfsHash,_paramType,_description, _cost, {
-      from: this.currentAccount
-    });
+    this.loggerService.add("Software stored on BigchainDB - " + bcdbTxID);
+    let checksum = this.checksumCalculator(_filename, _ipfsHash, _paramType, _description, _cost);
+
+    let deployedSoftwareRegistry = await this.SoftwareRegistry.deployed();
+    return await deployedSoftwareRegistry.addNewSoftware(bcdbTxID, checksum, {from: this.currentAccount});
+  }
+
+  checksumCalculator(_filename, _ipfsHash, _paramType, _description, _cost) {
+    return Md5.hashStr(_filename +_ipfsHash+_paramType+_description+_cost);
   }
 }

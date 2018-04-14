@@ -10,10 +10,10 @@ import {LoggerService} from '../../services/logger.service';
     styleUrls: ['./dataset.component.css']
 })
 export class DatasetComponent implements OnInit {
-    @ViewChild('datasetFileInput')
-    datasetFileInputVariable: any;   //used by ViewChild
+    // @ViewChild('datasetFileInput')
+    // datasetFileInputVariable: any;   //used by ViewChild
 
-    uploadedDatasetFile: File;
+    // uploadedDatasetFile: File;
 
     datasetForm: FormGroup;
     private txStatus: string;
@@ -35,20 +35,21 @@ export class DatasetComponent implements OnInit {
     private createForm() {
         this.datasetForm = this.fb.group({
             datasetName: ['', Validators.required],
+            ipfsHash: ['', Validators.required],
             datasetDescr: ['', Validators.required],
             cost: ['', Validators.required]
         });
     }
 
-    onChange(event) {
-        if(event.srcElement.files[0] != null) {
-            this.uploadedDatasetFile = event.srcElement.files[0];
-
-            this.loggerService.add(this.uploadedDatasetFile.name + " uploaded");
-            console.log(this.uploadedDatasetFile.name + ' uploaded');
-
-        }
-    }
+    // onChange(event) {
+    //     if(event.srcElement.files[0] != null) {
+    //         this.uploadedDatasetFile = event.srcElement.files[0];
+    //
+    //         this.loggerService.add(this.uploadedDatasetFile.name + " uploaded");
+    //         console.log(this.uploadedDatasetFile.name + ' uploaded');
+    //
+    //     }
+    // }
 
     onSubmit() {
         let formModel = this.datasetForm.value;
@@ -56,8 +57,9 @@ export class DatasetComponent implements OnInit {
         this.setTxStatus('Initiating transaction... (please wait)');
         this.datasetService
             .addDataset(
-                this.uploadedDatasetFile,
+                // this.uploadedDatasetFile,
                 formModel['datasetName'],
+                formModel['ipfsHash'],
                 formModel['datasetDescr'],
                 this.web3.utils.toWei(formModel['cost'].toString(), 'ether')
             )
@@ -90,7 +92,7 @@ export class DatasetComponent implements OnInit {
 
     reset() {
         this.datasetForm.reset();
-        this.uploadedDatasetFile = null;
-        this.datasetFileInputVariable.nativeElement.value = "";
+        // this.uploadedDatasetFile = null;
+        // this.datasetFileInputVariable.nativeElement.value = "";
     }
 }

@@ -1,5 +1,5 @@
-var ContainerRepository = artifacts.require("./ContainerRepository.sol");
+var ContainerRegistry = artifacts.require("./ContainerRegistry.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(ContainerRepository );
+  deployer.deploy(ContainerRegistry );
 };

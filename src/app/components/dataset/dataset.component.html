@@ -1,43 +1,52 @@
-<div class="container" >
-  <h2> Dataset Details</h2>
-  <br/>
-  <form [formGroup]="datasetForm" (ngSubmit)="onSubmit()" novalidate>
+<div class="container">
+    <h2> Dataset Details</h2>
+    <br/>
+    <form [formGroup]="datasetForm" (ngSubmit)="onSubmit()" novalidate>
 
-      <div class="form-group row">
-          <div class="col-sm-5">
-              <h3>Encrypted dataset upload:</h3>
-              <p>The dataset will be stored on BigchainDB.</p>
-              <input class="btn btn-light" #datasetFileInput id="datasetFile" type="file" (change)="onChange($event)"  />
-          </div>
-      </div>
+        <!--<div class="form-group row">-->
+        <!--<div class="col-sm-5">-->
+        <!--<h3>Encrypted dataset upload:</h3>-->
+        <!--<p>The dataset will be stored on BigchainDB.</p>-->
+        <!--<input class="btn btn-light" #datasetFileInput id="datasetFile" type="file" (change)="onChange($event)"  />-->
+        <!--</div>-->
+        <!--</div>-->
 
-      <div class="form-group row">
-      <label for="datasetName" class="col-sm-3 col-form-label" >Dataset Name:</label>
-      <div class="col-sm-5">
-        <input type="text" class="form-control" id="datasetName" formControlName="datasetName">
-      </div>
-    </div>
+        <div class="form-group row">
+            <label for="datasetName" class="col-sm-3 col-form-label">Dataset Name:</label>
+            <div class="col-sm-5">
+                <input type="text" class="form-control" id="datasetName" formControlName="datasetName">
+            </div>
+        </div>
 
-    <div class="form-group row">
-      <label for="datasetDescr" class="col-sm-3 col-form-label" >Dataset description:</label>
-      <div class="col-sm-5">
-        <textarea type="text" class="form-control" id="datasetDescr" formControlName="datasetDescr"></textarea>
-      </div>
-    </div>
-    <div class="form-group row">
-      <label for="cost" class="col-sm-3 col-form-label">Cost (in Ether):</label>
-      <div class="col-sm-2">
-        <input type="number" class="form-control" id="cost" min="0" step="0.001" formControlName="cost">
-      </div>
-    </div>
+        <div class="form-group row">
+            <label for="ipfsHash" class="col-sm-3 col-form-label">IPFS Hash:</label>
+            <div class="col-sm-5">
+                <input type="text" class="form-control" id="ipfsHash" formControlName="ipfsHash">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="datasetDescr" class="col-sm-3 col-form-label">Dataset description:</label>
+            <div class="col-sm-5">
+                <textarea type="text" class="form-control" id="datasetDescr" formControlName="datasetDescr"></textarea>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="cost" class="col-sm-3 col-form-label">Cost (in Ether):</label>
+            <div class="col-sm-2">
+                <input type="number" class="form-control" id="cost" min="0" step="0.001" formControlName="cost">
+            </div>
+        </div>
 
 
-    <div style="margin-bottom: 1em">
-      <button type="submit"
-              [disabled]="(!datasetForm.valid)" class="btn btn-success">Save</button>&nbsp;
-      <button type="reset" (click)="reset()" [disabled]="(datasetForm.pristine)" class="btn btn-danger">Cancel</button>
-    </div>
-  </form>
+        <div style="margin-bottom: 1em">
+            <button type="submit"
+                    [disabled]="(!datasetForm.valid)" class="btn btn-success">Save
+            </button>&nbsp;
+            <button type="reset" (click)="reset()" [disabled]="(datasetForm.pristine)" class="btn btn-danger">Cancel
+            </button>
+        </div>
+    </form>
 
-<span id="status">{{getTxStatus()}}</span>
+    <span id="status">{{getTxStatus()}}</span>
 </div>

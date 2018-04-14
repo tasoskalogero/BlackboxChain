@@ -9,6 +9,13 @@
     </div>
 
     <div class="form-group row">
+      <label for="ipfsHash" class="col-sm-3 col-form-label">IPFS Hash:</label>
+      <div class="col-sm-5">
+        <input type="text" class="form-control" id="ipfsHash" formControlName="ipfsHash">
+      </div>
+    </div>
+
+    <div class="form-group row">
       <label  for="publicKey" class="col-sm-3 col-form-label" >Public key:</label>
       <div class="col-sm-5">
         <input #pubFileInput type="file" id="publicKey" (change)="fileChange($event)" placeholder="Upload file">

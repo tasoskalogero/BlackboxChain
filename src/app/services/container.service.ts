@@ -1,15 +1,16 @@
 import {Injectable} from '@angular/core';
 import {Web3Service} from '../util/web3.service';
-import container_repository from '../../../build/contracts/ContainerRepository.json';
+import container_registry from '../../../build/contracts/ContainerRegistry.json';
 import Web3 from 'web3';
 import {Container} from '../models/models';
 import {BdbService} from './bdb.service';
 import {LoggerService} from './logger.service';
+import {Md5} from 'ts-md5';
 
 @Injectable()
 export class ContainerService {
     private web3: Web3;
-    private ContainerRepository: any;
+    private ContainerRegistry: any;
     private currentAccount: string;
 
     constructor(private bdbService: BdbService,
@@ -24,28 +25,31 @@ export class ContainerService {
             });
         });
 
-        this.web3Service.artifactsToContract(container_repository)
+        this.web3Service.artifactsToContract(container_registry)
             .then(async ContainerRepo => {
-                this.ContainerRepository = ContainerRepo;
+                this.ContainerRegistry = ContainerRepo;
             });
     }
 
     async getContainers() {
         let fetchedContainers = [];
-        let deployedContainerRepository = await this.ContainerRepository.deployed();
+        let deployedContainerRegistry = await this.ContainerRegistry.deployed();
         try {
-            let containerIDs = await deployedContainerRepository.getContainerIDs.call();
+            let containerIDs = await deployedContainerRegistry.getContainerIDs.call();
             console.log('ContainerIDs ' + containerIDs);
 
             for (let i = 0; i < containerIDs.length; ++i) {
-                let containerInfo = await deployedContainerRepository.getContainerByID.call(containerIDs[i]);
+                let containerInfo = await deployedContainerRegistry.getContainerByID.call(containerIDs[i]);
 
-                let containerID = containerIDs[i];
-                let containerDockerID = containerInfo[0];
-                let pubKey = containerInfo[1];
-                let costEther = this.web3.utils.fromWei(containerInfo[2].toNumber().toString(), 'ether');
-                let owner = containerInfo[3];
-                let containerToAdd = new Container(containerID, containerDockerID, pubKey, costEther, owner);
+                let bcdbID = containerInfo[0];
+
+                let bcdbContainerAsset = await this.bdbService.queryDB(bcdbID);
+
+                let containerDockerID = bcdbContainerAsset.containerDockerID;
+                let pubKey = bcdbContainerAsset.pubKey;
+                let costEther = this.web3.utils.fromWei(bcdbContainerAsset.cost, 'ether');
+
+                let containerToAdd = new Container(containerIDs[i], containerDockerID, pubKey, costEther);
                 fetchedContainers.push(containerToAdd);
             }
             return fetchedContainers;
@@ -55,10 +59,18 @@ export class ContainerService {
         }
     }
 
-    async addContainer(containerID: string, publicKey: File, cost: string) {
+    async addContainer(_containerDockerID, _ipfsHash, publicKey, _cost) {
         let pubkeyContents = await this.readFile(publicKey);
-        let deployedContainerRepository = await this.ContainerRepository.deployed();
-        return await deployedContainerRepository.addNewContainer(containerID, pubkeyContents, cost, {from: this.currentAccount});
+
+        let bcdbTxID = await this.bdbService.createNewContainer(_containerDockerID, _ipfsHash, pubkeyContents, _cost);
+
+        let checksum = this.checksumCalculator(_containerDockerID, _ipfsHash, publicKey, _cost);
+        let deployedContainerRegistry = await this.ContainerRegistry.deployed();
+        return await deployedContainerRegistry.addNewContainer(bcdbTxID, checksum,{from: this.currentAccount});
+    }
+
+    checksumCalculator(_containerDockerID, _ipfsHash, publicKey, _cost) {
+        return Md5.hashStr(_containerDockerID+_ipfsHash + publicKey + _cost);
     }
 
     readFile(file: File) {

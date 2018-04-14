@@ -9,10 +9,11 @@ const conn = new driver.Connection(API_PATH);
 const Web3 = require("web3");
 const codes = require("./error_codes.js");
 let bodyParser = require("body-parser");
-const PaymentJSON = require(path.join(
-    __dirname,
-    "../../../build/contracts/Payment.json"
-));
+let md5 = require('md5');
+
+const DatasetRegistryJSON = require(path.join(__dirname,"../../../build/contracts/DatasetRegistry.json"));
+const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
+const PaymentJSON = require(path.join(__dirname,"../../../build/contracts/Payment.json"));
 
 let web3;
 const ERROR_STATUS = "FAILURE";
@@ -45,18 +46,82 @@ app.use(function (req, res, next) {
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({extended: true}));
 
+async function checkDataset(datasetID) {
+
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
+    let DatasetRegistry = initContract(DatasetRegistryJSON);
+    let deployedDatasetRegistry = await DatasetRegistry.deployed();
+    try {
+        let datasetInfo = await deployedDatasetRegistry.getDatasetByID.call(datasetID, {from: currentAccount});
+        let bcdbID = datasetInfo[0];
+        let checksum = datasetInfo[1];
+        console.log("CHECKSUM:" ,checksum);
+        let datasetAssets = await conn.searchAssets(bcdbID);
+
+        if (datasetAssets.length === 0) {
+            return false;
+        }
+        let ipfsHash = datasetAssets[0].data.ipfsHash;
+        let dsName = datasetAssets[0].data.datasetName;
+        let description = datasetAssets[0].data.description;
+        let cost = datasetAssets[0].data.cost;
+
+        let computedChecksum = md5(dsName+ipfsHash+description+cost);
+        console.log(checksum  === computedChecksum);
+        return checksum === computedChecksum;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+async function checkSoftware(softwareID) {
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
+    let SoftwareRegistry = initContract(SoftwareRegistryJSON);
+    let deployedSoftwareRegistry = await SoftwareRegistry.deployed();
+    try {
+        let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: currentAccount});
+        let bcdbID = softwareInfo [0];
+        let checksum = softwareInfo [1];
+
+        let softwareAssets = await conn.searchAssets(bcdbID);
+
+        if (softwareAssets.length === 0) {
+            return false;
+        }
+        let filename = softwareAssets[0].data.filename;
+        let ipfsHash = softwareAssets[0].data.ipfsHash;
+        let paramType = softwareAssets[0].data.paramType;
+        let description = softwareAssets[0].data.description;
+        let cost = softwareAssets[0].data.cost;
+
+        let computedChecksum = md5(filename+ipfsHash+paramType+description+cost);
+        console.log(checksum  === computedChecksum);
+        return checksum === computedChecksum;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 app.post("/exec/create", async (request, res, next) => {
     let containerID = request.body.id;
-    let swIPFSHash = request.body.swIpfsHash;
-    let datasetBdbTxID = request.body.datasetBdbId;
+    let softwareID = request.body.softwareID;
+    let datasetID = request.body.datasetID;
     let userPubKey = request.body.pubUserKey;
 
     console.log(containerID);
-    console.log(swIPFSHash);
-    console.log(datasetBdbTxID);
+    console.log(softwareID);
+    console.log(datasetID);
     console.log(userPubKey);
 
-    // let swAssets = await conn.searchAssets(swIpfsHash);
+    let correctDataset = checkDataset(datasetID);
+    let correctSoftware = checkSoftware(softwareID);
+
+    if(correctDataset && correctSoftware && liveContainer) {
+
+    }
+
     let datasetAssets = await conn.searchAssets(datasetBdbTxID);
 
     if (datasetAssets.length === 0) {
