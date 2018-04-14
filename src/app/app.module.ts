@@ -24,7 +24,7 @@ import {SoftwareLayoutComponent} from './components/layouts/software-layout/soft
 import {ContainerLayoutComponent} from './components/layouts/container-layout/container-layout.component';
 import {CommunicationService} from './services/communication.service';
 import {BdbService} from './services/bdb.service';
-import {PaymentService} from './services/payment.service';
+import {OrderService} from './services/order.service';
 
 
 
@@ -50,7 +50,7 @@ import {PaymentService} from './services/payment.service';
     HttpClientModule,
     AppRoutingModule
   ],
-  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BdbService, PaymentService],
+  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BdbService, OrderService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

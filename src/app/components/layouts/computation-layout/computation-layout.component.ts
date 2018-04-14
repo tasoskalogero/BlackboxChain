@@ -8,7 +8,7 @@ import {PubKeyUploadLayoutComponent} from '../pubKeyUpload-layout/pubKeyUpload-l
 import {Container, Dataset, Software} from '../../../models/models';
 import {DatasetLayoutComponent} from '../dataset-layout/dataset-layout.component';
 import {Web3Service} from '../../../util/web3.service';
-import {PaymentService} from '../../../services/payment.service';
+import {OrderService} from '../../../services/order.service';
 
 @Component({
     selector: 'app-computation-layout',
@@ -38,7 +38,7 @@ export class ComputationLayoutComponent implements OnInit {
         private web3Service: Web3Service,
         private communicationService: CommunicationService,
         private dockerCommunicationService: DockerCommunicationService,
-        private paymentService: PaymentService,
+        private orderService: OrderService,
         private loggerService: LoggerService
     ) {
         communicationService.container$.subscribe(cont => {
@@ -69,33 +69,39 @@ export class ComputationLayoutComponent implements OnInit {
         console.log('Selected software received: ', this.software);
         console.log('===========================');
 
-        this.readFile(this.uploadedUserPubKeyFile).then(pubkey => {
-            this.dockerCommunicationService
-                .execCreate(this.container, this.software, this.dataset, pubkey)
-                .subscribe(async res => {
-                    console.log('----------- ', res);
-                    if (res[0] == "FAILURE") {
-                        //invalid bdb transaction id of dataset OR cannot create exec instance
-                        this.loggerService.add(res[1]);
-                    } else {
-                        let exec_id = JSON.parse(res[1]).Id;
+        let success = await this.orderService.placeNewOrder(
+            this.container,
+            this.dataset,
+            this.software);
 
-                        // let paymentID = await this.paymentService.createPayment(
-                        //     this.container,
-                        //     this.dataset,
-                        //     this.software
-                        // );
-                        let paymentID = "";
-                        this.dockerCommunicationService
-                            .execStart(exec_id, paymentID)
-                            .subscribe(res => {
-                                let ipfsHash = res[1];
-                                console.log(ipfsHash);
-                                this.loggerService.add(res[0] + ' - ' + ipfsHash);
-                            });
-                    }
-                });
-        });
+        // this.readFile(this.uploadedUserPubKeyFile).then(pubkey => {
+        //     this.dockerCommunicationService
+        //         .execCreate(this.container, this.software, this.dataset, pubkey)
+        //         .subscribe(async res => {
+        //             console.log('----------- ', res);
+        //             if (res[0] == "FAILURE") {
+        //                 //invalid bdb transaction id of dataset OR cannot create exec instance
+        //                 this.loggerService.add(res[1]);
+        //             } else {
+        //                 let exec_id = JSON.parse(res[1]).Id;
+        //
+        //                 let success = await this.orderService.placeNewOrder(
+        //                     this.container,
+        //                     this.dataset,
+        //                     this.software
+        //                 );
+        //                 //TODO change
+        //                 let paymentID = "";
+        //                 this.dockerCommunicationService
+        //                     .execStart(exec_id, paymentID)
+        //                     .subscribe(res => {
+        //                         let ipfsHash = res[1];
+        //                         console.log(ipfsHash);
+        //                         this.loggerService.add(res[0] + ' - ' + ipfsHash);
+        //                     });
+        //             }
+        //         });
+        // });
     }
 
     readFile(file: File) {
