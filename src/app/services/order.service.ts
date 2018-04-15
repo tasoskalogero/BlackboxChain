@@ -1,23 +1,23 @@
 import { Injectable } from '@angular/core';
 import {Web3Service} from '../util/web3.service';
-import computation from "../../../build/contracts/Order.json";
+import order from "../../../build/contracts/Order.json";
 import software_registry from "../../../build/contracts/SoftwareRegistry.json";
 import dataset_registry from "../../../build/contracts/DatasetRegistry.json";
 import container_registry from '../../../build/contracts/ContainerRegistry.json';
 import Web3 from 'web3';
-import {BdbService} from './bdb.service';
+import {BcdbService} from './bcdb.service';
 
 @Injectable()
 export class OrderService {
     private currentAccount: string;
     private web3: Web3;
-    private Computation: any;
+    private Order: any;
     private SoftwareRegistry: any;
     private DatasetRegistry: any;
     private ContainerRegistry: any;
 
   constructor(private web3Service: Web3Service,
-              private bdbService: BdbService) {
+              private bcdbService: BcdbService) {
       this.web3 = this.web3Service.getWeb3();
 
       web3Service.accountsObservable.subscribe(() => {
@@ -26,9 +26,9 @@ export class OrderService {
           });
       });
       this.web3Service
-          .artifactsToContract(computation)
+          .artifactsToContract(order)
           .then(SoftwareRepo => {
-              this.Computation = SoftwareRepo;
+              this.Order = SoftwareRepo;
           });
 
       this.web3Service
@@ -62,9 +62,9 @@ export class OrderService {
       let totalWei = +swCostWei + +dsCostWei + +containerCostWei;
       console.log(totalWei);
 
-      let deployedComputation = await this.Computation.deployed();
+      let deployedOrder = await this.Order.deployed();
       try {
-          let success = await deployedComputation.newOrder(
+          let success = await deployedOrder.newOrder(
               container.ID,
               dataset.ID,
               software.ID,
@@ -80,9 +80,9 @@ export class OrderService {
         try {
             let dsInfo = await deployedDatasetRegistry.getDatasetByID.call(datasetID);
 
-            let bcdbID = dsInfo [0];
+            let bcdbTxID = dsInfo [0];
 
-            let bcdbDatasetAsset = await this.bdbService.queryDB(bcdbID);
+            let bcdbDatasetAsset = await this.bcdbService.queryDB(bcdbTxID);
 
             return bcdbDatasetAsset .cost;
         } catch (e) {
@@ -99,9 +99,9 @@ export class OrderService {
       try {
           let swInfo = await deployedSoftwareRegistry.getSoftwareByID.call(softwareID);
 
-          let bcdbID = swInfo[0];
+          let bcdbTxID = swInfo[0];
 
-          let bcdbSoftwareAsset = await this.bdbService.queryDB(bcdbID);
+          let bcdbSoftwareAsset = await this.bcdbService.queryDB(bcdbTxID);
 
           return bcdbSoftwareAsset.cost;
       } catch (e) {
@@ -117,9 +117,9 @@ export class OrderService {
         try {
             let containerInfo = await deployedContainerRegistry.getContainerByID.call(containerID);
 
-            let bcdbID = containerInfo[0];
+            let bcdbTxID = containerInfo[0];
 
-            let bcdbContainerAsset = await this.bdbService.queryDB(bcdbID);
+            let bcdbContainerAsset = await this.bcdbService.queryDB(bcdbTxID);
 
             return bcdbContainerAsset.cost;
         } catch (e) {

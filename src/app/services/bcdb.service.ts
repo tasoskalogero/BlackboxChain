@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import * as bcdb_driver from 'bigchaindb-driver';
 
 @Injectable()
-export class BdbService {
+export class BcdbService {
     apiUrl = 'http://localhost:59984/api/v1/';
 
     //TODO make connection in constructor once?
@@ -100,13 +100,13 @@ export class BdbService {
         return retrievedTx.id;
     }
 
-    async queryDB(bdbId) {
+    async queryDB(bcdbTxId) {
         const conn = new bcdb_driver.Connection(this.apiUrl);
-        let assets = await conn.searchAssets(bdbId);
+        let assets = await conn.searchAssets(bcdbTxId);
         if(assets.length === 0) {
             return "BighcainDB TxId invalid";
         }
-        console.log("[FOUND on BDB]", assets);
+        console.log("[FOUND on BCDB]", assets);
         return assets[0].data;
     }
 

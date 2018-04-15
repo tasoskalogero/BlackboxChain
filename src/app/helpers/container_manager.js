@@ -36,7 +36,7 @@ function initContract(web3, artifact) {
 // initWeb3();
 
 
-exports.getContainerCost = async function(web3, containerID) {
+exports.getContainerByID = async function(web3, containerID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
@@ -44,12 +44,12 @@ exports.getContainerCost = async function(web3, containerID) {
     let deployedContainerRegistry = await ContainerRegistry.deployed();
     try {
         let containerInfo = await deployedContainerRegistry.getContainerByID.call(containerID, {from: currentAccount});
-        let bcdbID = containerInfo[0];
-        let containerAssets = await conn.searchAssets(bcdbID);
+        let bcdbTxID = containerInfo[0];
+        let containerAssets = await conn.searchAssets(bcdbTxID);
         if (containerAssets.length === 0) {
             return false;
         }
-        return containerAssets[0].data.cost;
+        return containerAssets[0].data;
 
     } catch (e) {
         console.log(e);
@@ -65,8 +65,8 @@ exports.getDockerContainerID = async function(web3, containerID) {
     let deployedContainerRegistry = await ContainerRegistry.deployed();
     try {
         let containerInfo = await deployedContainerRegistry.getContainerByID.call(containerID, {from: currentAccount});
-        let bcdbID = containerInfo[0];
-        let containerAssets = await conn.searchAssets(bcdbID);
+        let bcdbTxID = containerInfo[0];
+        let containerAssets = await conn.searchAssets(bcdbTxID);
         if (containerAssets.length === 0) {
             return false;
         }

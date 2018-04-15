@@ -1,11 +1,22 @@
 pragma solidity ^0.4.18;
 
+contract DatasetRegistry {
+    function getDatasetPaymentInfo(bytes32)view returns(uint,address) {}
+}
+
+contract SoftwareRegistry {
+    function getSoftwarePaymentInfo(bytes32)view returns(uint,address) {}
+}
+
+contract ContainerRegistry {
+    function getContainerPaymentInfo(bytes32)view returns(uint,address) {}
+}
+
 contract Order {
 
     address ORACLE = 0x5aeda56215b167893e80b4fe645ba6d5bab767de;
 
-
-    struct Order {
+    struct OrderStruct {
         bytes32 orderID;
 
         bytes32 containerID;
@@ -24,7 +35,18 @@ contract Order {
     );
 
     bytes32[] orderIDs;
-    mapping(bytes32 => Order) orderRegistry;
+    mapping(bytes32 => OrderStruct) orderRegistry;
+
+    DatasetRegistry ds;
+    ContainerRegistry cont;
+    SoftwareRegistry sw;
+
+    function Order(address _swAddr, address _dsAddr, address _contAddr) {
+        ds = DatasetRegistry(_dsAddr);
+        sw = SoftwareRegistry(_swAddr);
+        cont = ContainerRegistry(_contAddr);
+    }
+
 
     function getOrderByID(bytes32 orderID) public view returns(bytes32 _contID, bytes32 _dsID, bytes32 _swID, uint _amount){
         return(orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].totalAmount);
@@ -49,16 +71,24 @@ contract Order {
         return true;
     }
 
-//    function executePayment(bytes32 paymentID) public returns(bool){
-//        require(msg.sender == ORACLE);
-//
-//        paymentEntries[paymentID].datasetOwner.transfer(paymentEntries[paymentID].datasetCost);
-//        paymentEntries[paymentID].containerOwner.transfer(paymentEntries[paymentID].containerCost);
-//        paymentEntries[paymentID].softwareOwner.transfer(paymentEntries[paymentID].softwareCost);
-//        return true;
-//    }
-//
-//    function returnFunds(bytes32 paymentID) public returns(bool) {
+
+    //TODO check if order has already been paid - add a bool flag
+    function executePayment(bytes32 orderID) public returns(bool){
+        require(msg.sender == ORACLE);
+
+        var (ds_cost, ds_owner) = ds.getDatasetPaymentInfo(orderRegistry[orderID].datasetID);
+
+        var (sw_cost, sw_owner) = sw.getSoftwarePaymentInfo(orderRegistry[orderID].softwareID);
+
+        var (cont_cost, cont_owner) = cont.getContainerPaymentInfo(orderRegistry[orderID].containerID);
+
+        ds_owner.transfer(ds_cost);
+        sw_owner.transfer(sw_cost);
+        cont_owner.transfer(cont_cost);
+        return true;
+    }
+
+    //    function returnFunds(bytes32 paymentID) public returns(bool) {
 //        require(msg.sender == ORACLE);
 //        paymentEntries[paymentID].buyer.transfer(paymentEntries[paymentID].totalAmount);
 //    }

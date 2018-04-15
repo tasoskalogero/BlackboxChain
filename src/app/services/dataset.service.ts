@@ -4,7 +4,7 @@ import dataset_registry from "../../../build/contracts/DatasetRegistry.json";
 import Web3 from "web3";
 import { LoggerService } from "./logger.service";
 import { Dataset } from "../models/models";
-import { BdbService } from "./bdb.service";
+import { BcdbService } from "./bcdb.service";
 import {Md5} from 'ts-md5';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class DatasetService {
 
   constructor(
     private web3Service: Web3Service,
-    private bdbService: BdbService,
+    private bcdbService: BcdbService,
     private loggerService: LoggerService
   ) {
     this.web3 = this.web3Service.getWeb3();
@@ -43,9 +43,9 @@ export class DatasetService {
           for(let i = 0; i < datasetIDs.length; ++i) {
               let dsInfo = await deployedDatasetRegistry.getDatasetByID.call(datasetIDs[i]);
 
-              let bcdbID = dsInfo[0];
+              let bcdbTxID = dsInfo[0];
 
-              let bcdbDatasetAsset = await this.bdbService.queryDB(bcdbID);
+              let bcdbDatasetAsset = await this.bcdbService.queryDB(bcdbTxID);
 
               let datasetName = bcdbDatasetAsset.datasetName;
               let datasetDescription = bcdbDatasetAsset.description;
@@ -68,14 +68,14 @@ export class DatasetService {
 
   async addDataset(_dsName, _ipfsHash, _dsDescription, _cost) {
     // let encryptedDatasetContents = await this.readFile(datasetFile);
-    let bcdbTxID = await this.bdbService.createNewDataset(_ipfsHash, _dsName, _dsDescription, _cost);
+    let bcdbTxID = await this.bcdbService.createNewDataset(_ipfsHash, _dsName, _dsDescription, _cost);
 
     this.loggerService.add("Dataset stored on BigchainDB - " + bcdbTxID);
 
       let checksum = this.checksumCalculator(_dsName, _ipfsHash, _dsDescription, _cost);
     let deployedDatasetRegistry = await this.DatasetRegistry.deployed();
 
-    return await deployedDatasetRegistry.addNewDataset(bcdbTxID, checksum, {from: this.currentAccount});
+    return await deployedDatasetRegistry.addNewDataset(bcdbTxID, checksum, _cost, {from: this.currentAccount});
   }
 
 

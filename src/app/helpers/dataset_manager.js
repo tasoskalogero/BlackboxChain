@@ -9,18 +9,6 @@ const conn = new driver.Connection(API_PATH);
 
 const DatasetRegistryJSON = require(path.join(__dirname,"../../../build/contracts/DatasetRegistry.json"));
 
-// let web3;
-
-// function initWeb3() {
-//     console.log("Initializing web3");
-//     if (typeof web3 !== "undefined") {
-//         web3 = new Web3(web3.currentProvider);
-//     } else {
-//         set the provider you want from Web3.providers
-        // web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
-    // }
-// }
-
 function initContract(web3, artifact) {
     let MyContract = contract(artifact);
     MyContract.setProvider(web3.currentProvider);
@@ -34,22 +22,20 @@ function initContract(web3, artifact) {
     return MyContract;
 }
 
-// initWeb3();
-
-exports.getDatasetCost = async function(web3, datasetID) {
+exports.getDatasetByID = async function(web3, datasetID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
     let DatasetRegistry = initContract(web3, DatasetRegistryJSON);
     let deployedDatasetRegistry = await DatasetRegistry.deployed();
     try {
         let datasetInfo = await deployedDatasetRegistry.getDatasetByID.call(datasetID, {from: currentAccount});
-        let bcdbID = datasetInfo[0];
-        let datasetAssets = await conn.searchAssets(bcdbID);
+        let bcdbTxID = datasetInfo[0];
+        let datasetAssets = await conn.searchAssets(bcdbTxID);
 
         if (datasetAssets.length === 0) {
             return false;
         }
-        return datasetAssets[0].data.cost;
+        return datasetAssets[0].data;
     } catch (e) {
         console.log(e);
     }
@@ -62,9 +48,9 @@ exports.checkDataset = async function(web3, datasetID) {
     let deployedDatasetRegistry = await DatasetRegistry.deployed();
     try {
         let datasetInfo = await deployedDatasetRegistry.getDatasetByID.call(datasetID, {from: currentAccount});
-        let bcdbID = datasetInfo[0];
+        let bcdbTxID = datasetInfo[0];
         let checksum = datasetInfo[1];
-        let datasetAssets = await conn.searchAssets(bcdbID);
+        let datasetAssets = await conn.searchAssets(bcdbTxID);
 
         if (datasetAssets.length === 0) {
             return false;

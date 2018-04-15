@@ -23,8 +23,8 @@ import {DatasetLayoutComponent} from './components/layouts/dataset-layout/datase
 import {SoftwareLayoutComponent} from './components/layouts/software-layout/software-layout.component';
 import {ContainerLayoutComponent} from './components/layouts/container-layout/container-layout.component';
 import {CommunicationService} from './services/communication.service';
-import {BdbService} from './services/bdb.service';
 import {OrderService} from './services/order.service';
+import {BcdbService} from './services/bcdb.service';
 
 
 
@@ -50,7 +50,7 @@ import {OrderService} from './services/order.service';
     HttpClientModule,
     AppRoutingModule
   ],
-  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BdbService, OrderService],
+  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BcdbService, OrderService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

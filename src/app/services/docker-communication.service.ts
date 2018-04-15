@@ -4,7 +4,7 @@ import {catchError, tap} from 'rxjs/operators';
 import {Observable} from 'rxjs/Observable';
 import {of} from 'rxjs/observable/of';
 import {LoggerService} from './logger.service';
-import {BdbService} from './bdb.service';
+import {BcdbService} from './bcdb.service';
 
 @Injectable()
 export class DockerCommunicationService {
@@ -15,7 +15,7 @@ export class DockerCommunicationService {
 
     constructor(
         private http: HttpClient,
-        private bdbService: BdbService,
+        private bcdbService: BcdbService,
         private loggerService: LoggerService) {
     }
 

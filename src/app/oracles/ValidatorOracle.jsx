@@ -4,18 +4,22 @@ const path = require("path");
 const Web3 = require("web3");
 
 const OrderJSON = require(path.join(__dirname,"../../../build/contracts/Order.json"));
+const DatasetRegistryJSON = require(path.join(__dirname,"../../../build/contracts/DatasetRegistry.json"));
+const ContainerRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ContainerRegistry.json"));
+const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
+
 const codes = require("../helpers/error_codes.js");
 
 let dataset_methods = require('../helpers/dataset_manager');
-let getDatasetCost = dataset_methods.getDatasetCost;
+let getDatasetByID = dataset_methods.getDatasetByID;
 let checkDataset = dataset_methods.checkDataset;
 
 let software_methods = require('../helpers/software_manager');
-let getSoftwareCost = software_methods.getSoftwareCost;
+let getSoftwareByID = software_methods.getSoftwareByID;
 let checkSoftware = software_methods.checkSoftware;
 
 let container_methods = require('../helpers/container_manager');
-let getContainerCost = container_methods.getContainerCost;
+let getContainerByID = container_methods.getContainerByID;
 let getDockerContainerID = container_methods.getDockerContainerID;
 let getContainerStatus = container_methods.getContainerStatus;
 
@@ -53,9 +57,9 @@ async function watchEvents() {
 
     let latestBlock = await web3.eth.getBlockNumber();
     let OrderContract = initContract(OrderJSON);
-    let orderReceipt = await OrderContract.deployed();
+    let deployedOrder = await OrderContract.deployed();
 
-    orderReceipt.OrderEvent({fromBlock: latestBlock}, async (error, event) => {
+    deployedOrder.OrderEvent({fromBlock: latestBlock}, async (error, event) => {
         if (error) {
             console.log(error);
         } else {
@@ -70,14 +74,20 @@ async function watchEvents() {
                 console.log("EVENT Received: ", event.args);
                 console.log(userPubKey);
 
-                let orderInfo = await orderReceipt.getOrderByID.call(event.args.orderID, {from: currentAccount});
+                let orderID = event.args.orderID;
+                let softwareID = event.args.softwareID;
+                let datasetID = event.args.datasetID;
+                let containerID = event.args.containerID;
 
-                let successFunds = await verifyFunds(event.args.softwareID,event.args.datasetID, event.args.containerID, orderInfo[4].toNumber());
+                let orderInfo = await deployedOrder.getOrderByID.call(orderID, {from: currentAccount});
 
-                let datasetMatch = await checkDataset(web3, event.args.datasetID);
-                let softwareMatch = await checkSoftware(web3, event.args.softwareID);
+                // CHECK IF AMOUNT SENT IN CONTRACT IS EQUAL TO THE AMOUNT OF THE SELECTED SOFTWARE, DATASET, CONTAINER
+                let successFunds = await verifyFunds(softwareID, datasetID, containerID, orderInfo[3].toNumber());
 
-                let containerDockerID = await getDockerContainerID(web3, event.args.containerID);
+                let datasetMatch = await checkDataset(web3, datasetID);
+                let softwareMatch = await checkSoftware(web3, softwareID);
+
+                let containerDockerID = await getDockerContainerID(web3, containerID);
                 let containerAlive  = await getContainerStatus(containerDockerID);
 
                 if (successFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
@@ -109,10 +119,13 @@ async function watchEvents() {
                             // TODO handle error
                             console.log(error_msg);
                         } else {
-                            //                 // await execPayment(paymentID);
+
+                            await execPayment(orderID);
+
                             msg = msg.replace(/\//g, ""); // remove / from ipfs address result
                             //                 res.send(["Success", msg]);
                             console.log("--------------------->", msg);
+
                         }
                         //         } catch (e) {
                         //             // await revertPayment(paymentID);
@@ -134,12 +147,6 @@ async function watchEvents() {
 
 
 async function createExecInstance(containerID, softwareIPFSHash, datasetIpfsHash, userPubKey) {
-
-    console.log(containerID);
-    console.log(softwareIPFSHash);
-    console.log(datasetIpfsHash);
-    console.log(userPubKey);
-
 
     let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKey];
     let bodyCmd = JSON.stringify({
@@ -256,13 +263,17 @@ async function revertPayment(paymentID) {
     }
 }
 
-async function execPayment(paymentID) {
+async function execPayment(orderID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
-    let PaymentContract = initContract(PaymentJSON);
-    let deployedPayment = await PaymentContract.deployed();
+
+    let OrderContract = initContract(OrderJSON);
+    let deployedOrder = await OrderContract.deployed();
+
     try {
-        let success = await deployedPayment.executePayment(paymentID, {from: currentAccount});
+        let success = await deployedOrder.executePayment(orderID, {from: currentAccount});
+
+        console.log("PAYMENT DONE");
     } catch (e) {
         console.log(e);
     }
@@ -270,9 +281,15 @@ async function execPayment(paymentID) {
 
 
 async function verifyFunds(softwareID, datasetID, containerID, fundsInOrder) {
-    let swCost = await getSoftwareCost(web3, softwareID);
-    let dsCost = await getDatasetCost(web3, datasetID);
-    let containerCost = await getContainerCost(web3, containerID);
+
+    let sw = await getSoftwareByID(web3, softwareID);
+    let swCost = sw.cost;
+
+    let ds = await getDatasetByID(web3, datasetID);
+    let dsCost = ds.cost;
+
+    let container = await getContainerByID(web3, containerID);
+    let containerCost = container.cost;
     let expectedCost = +swCost + +dsCost + +containerCost;
 
     return expectedCost === fundsInOrder;

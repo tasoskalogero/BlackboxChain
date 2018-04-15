@@ -80,7 +80,7 @@ export class ComputationLayoutComponent implements OnInit {
         //         .subscribe(async res => {
         //             console.log('----------- ', res);
         //             if (res[0] == "FAILURE") {
-        //                 //invalid bdb transaction id of dataset OR cannot create exec instance
+        //                 //invalid bcdb transaction id of dataset OR cannot create exec instance
         //                 this.loggerService.add(res[1]);
         //             } else {
         //                 let exec_id = JSON.parse(res[1]).Id;

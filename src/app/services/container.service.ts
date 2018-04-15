@@ -3,9 +3,9 @@ import {Web3Service} from '../util/web3.service';
 import container_registry from '../../../build/contracts/ContainerRegistry.json';
 import Web3 from 'web3';
 import {Container} from '../models/models';
-import {BdbService} from './bdb.service';
 import {LoggerService} from './logger.service';
 import {Md5} from 'ts-md5';
+import {BcdbService} from './bcdb.service';
 
 @Injectable()
 export class ContainerService {
@@ -13,7 +13,7 @@ export class ContainerService {
     private ContainerRegistry: any;
     private currentAccount: string;
 
-    constructor(private bdbService: BdbService,
+    constructor(private bcdbService: BcdbService,
                 private loggerService: LoggerService,
                 private web3Service: Web3Service) {
 
@@ -41,9 +41,9 @@ export class ContainerService {
             for (let i = 0; i < containerIDs.length; ++i) {
                 let containerInfo = await deployedContainerRegistry.getContainerByID.call(containerIDs[i]);
 
-                let bcdbID = containerInfo[0];
+                let bcdbTxID = containerInfo[0];
 
-                let bcdbContainerAsset = await this.bdbService.queryDB(bcdbID);
+                let bcdbContainerAsset = await this.bcdbService.queryDB(bcdbTxID);
 
                 let containerDockerID = bcdbContainerAsset.containerDockerID;
                 let pubKey = bcdbContainerAsset.pubKey;
@@ -62,11 +62,11 @@ export class ContainerService {
     async addContainer(_containerDockerID, _ipfsHash, publicKey, _cost) {
         let pubkeyContents = await this.readFile(publicKey);
 
-        let bcdbTxID = await this.bdbService.createNewContainer(_containerDockerID, _ipfsHash, pubkeyContents, _cost);
+        let bcdbTxID = await this.bcdbService.createNewContainer(_containerDockerID, _ipfsHash, pubkeyContents, _cost);
 
         let checksum = this.checksumCalculator(_containerDockerID, _ipfsHash, publicKey, _cost);
         let deployedContainerRegistry = await this.ContainerRegistry.deployed();
-        return await deployedContainerRegistry.addNewContainer(bcdbTxID, checksum,{from: this.currentAccount});
+        return await deployedContainerRegistry.addNewContainer(bcdbTxID, checksum, _cost,{from: this.currentAccount});
     }
 
     checksumCalculator(_containerDockerID, _ipfsHash, publicKey, _cost) {

@@ -9,17 +9,6 @@ const conn = new driver.Connection(API_PATH);
 
 const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
 
-let web3;
-
-// function initWeb3() {
-//     console.log("Initializing web3");
-//     if (typeof web3 !== "undefined") {
-//         web3 = new Web3(web3.currentProvider);
-//     } else {
-//         set the provider you want from Web3.providers
-        // web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
-    // }
-// }
 function initContract(web3, artifact) {
     let MyContract = contract(artifact);
     MyContract.setProvider(web3.currentProvider);
@@ -33,24 +22,21 @@ function initContract(web3, artifact) {
     return MyContract;
 }
 
-// initWeb3();
-
-
-exports.getSoftwareCost = async function(web3, softwareID) {
+exports.getSoftwareByID = async function(web3, softwareID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
     let SoftwareRegistry = initContract(web3, SoftwareRegistryJSON);
     let deployedSoftwareRegistry = await SoftwareRegistry.deployed();
     try {
         let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: currentAccount});
-        let bcdbID = softwareInfo [0];
+        let bcdbTxID = softwareInfo [0];
 
-        let softwareAssets = await conn.searchAssets(bcdbID);
+        let softwareAssets = await conn.searchAssets(bcdbTxID);
 
         if (softwareAssets.length === 0) {
             return false;
         }
-        return softwareAssets[0].data.cost;
+        return softwareAssets[0].data;
     } catch (e) {
         console.log(e);
     }
@@ -63,10 +49,10 @@ exports.checkSoftware = async function(web3, softwareID) {
     let deployedSoftwareRegistry = await SoftwareRegistry.deployed();
     try {
         let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: currentAccount});
-        let bcdbID = softwareInfo [0];
+        let bcdbTxID = softwareInfo [0];
         let checksum = softwareInfo [1];
 
-        let softwareAssets = await conn.searchAssets(bcdbID);
+        let softwareAssets = await conn.searchAssets(bcdbTxID);
 
         if (softwareAssets.length === 0) {
             return false;
