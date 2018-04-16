@@ -23,15 +23,22 @@ contract Order {
         bytes32 datasetID;
         bytes32 softwareID;
 
+        bytes32 result;
+
         address buyer;
         uint totalAmount;
     }
 
-    event OrderEvent (
+    event OrderPlaced (
         bytes32 indexed orderID,
         bytes32 indexed containerID,
         bytes32 indexed datasetID,
         bytes32 softwareID
+    );
+
+    event OrderResult (
+        bytes32 result,
+        address buyer
     );
 
     bytes32[] orderIDs;
@@ -66,25 +73,29 @@ contract Order {
         orderRegistry[newOrderID].totalAmount = msg.value;
         orderRegistry[newOrderID].buyer = msg.sender;
 
-        OrderEvent(newOrderID, _containerID, _datasetID, _softwareID);
+        OrderPlaced(newOrderID, _containerID, _datasetID, _softwareID);
 
         return true;
     }
 
 
     //TODO check if order has already been paid - add a bool flag
-    function executePayment(bytes32 orderID) public returns(bool){
+    function executePayment(bytes32 _orderID, bytes32 _result) public returns(bool){
         require(msg.sender == ORACLE);
 
-        var (ds_cost, ds_owner) = ds.getDatasetPaymentInfo(orderRegistry[orderID].datasetID);
+        var (ds_cost, ds_owner) = ds.getDatasetPaymentInfo(orderRegistry[_orderID].datasetID);
 
-        var (sw_cost, sw_owner) = sw.getSoftwarePaymentInfo(orderRegistry[orderID].softwareID);
+        var (sw_cost, sw_owner) = sw.getSoftwarePaymentInfo(orderRegistry[_orderID].softwareID);
 
-        var (cont_cost, cont_owner) = cont.getContainerPaymentInfo(orderRegistry[orderID].containerID);
+        var (cont_cost, cont_owner) = cont.getContainerPaymentInfo(orderRegistry[_orderID].containerID);
 
         ds_owner.transfer(ds_cost);
         sw_owner.transfer(sw_cost);
         cont_owner.transfer(cont_cost);
+
+        orderRegistry[_orderID].result = _result;
+        OrderResult(orderRegistry[_orderID].result, orderRegistry[_orderID].buyer);
+
         return true;
     }
 

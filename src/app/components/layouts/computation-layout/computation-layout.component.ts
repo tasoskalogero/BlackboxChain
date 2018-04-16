@@ -9,6 +9,9 @@ import {Container, Dataset, Software} from '../../../models/models';
 import {DatasetLayoutComponent} from '../dataset-layout/dataset-layout.component';
 import {Web3Service} from '../../../util/web3.service';
 import {OrderService} from '../../../services/order.service';
+import Web3 from 'web3';
+import orderContract from "../../../../../build/contracts/Order.json";
+
 
 @Component({
     selector: 'app-computation-layout',
@@ -29,10 +32,14 @@ export class ComputationLayoutComponent implements OnInit {
     @ViewChild(DatasetLayoutComponent)
     private datasetDisplayComponent: DatasetLayoutComponent;
 
+    web3: Web3;
     container: Container;
     software: Software;
     uploadedUserPubKeyFile: File;
     dataset: Dataset;
+    currentAccount: string;
+    Order: any;
+    private txStatus: string;
 
     constructor(
         private web3Service: Web3Service,
@@ -56,9 +63,42 @@ export class ComputationLayoutComponent implements OnInit {
         communicationService.uploadedUserPubKey$.subscribe(file => {
             this.uploadedUserPubKeyFile = file;
         });
+
+        this.web3 = this.web3Service.getWeb3();
+        web3Service.accountsObservable.subscribe(() => {
+            this.web3.eth.getCoinbase().then(cb => {
+                this.currentAccount = cb;
+            });
+        });
+
+        this.web3Service
+            .artifactsToContract(orderContract)
+            .then(order => {
+                this.Order = order;
+            });
+        this.watchForResult();
     }
 
+
     ngOnInit() {
+    }
+
+    async watchForResult() {
+        let latestBlock = await this.web3.eth.getBlockNumber();
+        let deployedOrder = await this.Order.deployed();
+        console.log('Watching for events');
+        deployedOrder.OrderResult({fromBlock: latestBlock}, async (error, event) => {
+            if (error) {
+                console.log(error);
+            } else {
+                if (event.blockNumber !== latestBlock) {
+                    console.log(event.args);
+                    this.loggerService.add(event.args.result);
+                    this.setTxStatus("Order completed successfully");
+                }
+            }
+            latestBlock = latestBlock + 1;
+        });
     }
 
     async onSubmit() {
@@ -69,6 +109,7 @@ export class ComputationLayoutComponent implements OnInit {
         console.log('Selected software received: ', this.software);
         console.log('===========================');
 
+        this.setTxStatus("Placing order...");
         let success = await this.orderService.placeNewOrder(
             this.container,
             this.dataset,
@@ -134,5 +175,14 @@ export class ComputationLayoutComponent implements OnInit {
             this.pubKeyUploadDisplayComponent.removeFile();
             this.uploadedUserPubKeyFile = null;
         }
+        this.setTxStatus("");
+    }
+
+    setTxStatus(status) {
+        this.txStatus = status;
+    }
+
+    getTxStatus() {
+        return this.txStatus;
     }
 }

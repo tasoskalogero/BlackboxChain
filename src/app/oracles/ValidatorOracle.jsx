@@ -4,9 +4,6 @@ const path = require("path");
 const Web3 = require("web3");
 
 const OrderJSON = require(path.join(__dirname,"../../../build/contracts/Order.json"));
-const DatasetRegistryJSON = require(path.join(__dirname,"../../../build/contracts/DatasetRegistry.json"));
-const ContainerRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ContainerRegistry.json"));
-const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
 
 const codes = require("../helpers/error_codes.js");
 
@@ -59,7 +56,7 @@ async function watchEvents() {
     let OrderContract = initContract(OrderJSON);
     let deployedOrder = await OrderContract.deployed();
 
-    deployedOrder.OrderEvent({fromBlock: latestBlock}, async (error, event) => {
+    deployedOrder.OrderPlaced({fromBlock: latestBlock}, async (error, event) => {
         if (error) {
             console.log(error);
         } else {
@@ -104,27 +101,29 @@ async function watchEvents() {
                         console.log("EXEC_ID = ", exec_id);
 
                         //EXECUTE
-                        let msg = await runExec(exec_id);
+                        let result = await runExec(exec_id);
 
                         //TODO error handling
-                        msg = msg.replace(/[\u0001\u0000\u0004]/g, "");
-                        msg = msg.trim();
+                        result = result.replace(/[\u0001\u0000\u0004]/g, "");
+                        result = result.trim();
 
                         let error_codes_array = codes.getErrorCodes();
 
-                        if (error_codes_array.includes(parseInt(msg))) {
-                            let error_msg = codes.getErrorMessage(parseInt(msg));
+                        if (error_codes_array.includes(parseInt(result))) {
+                            let error_msg = codes.getErrorMessage(parseInt(result));
                             //                 // await revertPayment(paymentID);
                             //                 res.send(["Failure", error_msg]);
                             // TODO handle error
                             console.log(error_msg);
                         } else {
 
-                            await execPayment(orderID);
-
-                            msg = msg.replace(/\//g, ""); // remove / from ipfs address result
+                            result = result.replace(/\//g, ""); // remove / from ipfs address result
                             //                 res.send(["Success", msg]);
-                            console.log("--------------------->", msg);
+                            console.log("--------------------->", result);
+
+
+                            console.log("RESULT STORED IN SC");
+                            await execPayment(orderID);
 
                         }
                         //         } catch (e) {
@@ -263,7 +262,7 @@ async function revertPayment(paymentID) {
     }
 }
 
-async function execPayment(orderID) {
+async function execPayment(orderID, result) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
@@ -271,7 +270,7 @@ async function execPayment(orderID) {
     let deployedOrder = await OrderContract.deployed();
 
     try {
-        let success = await deployedOrder.executePayment(orderID, {from: currentAccount});
+        let success = await deployedOrder.executePayment(orderID, result, {from: currentAccount});
 
         console.log("PAYMENT DONE");
     } catch (e) {
