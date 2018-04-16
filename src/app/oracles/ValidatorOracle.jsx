@@ -49,26 +49,6 @@ function initContract(artifact) {
     return MyContract;
 }
 
-async function watchResultEvents() {
-    console.log("Listening for smart contract error events...");
-
-    let latestBlock = await web3.eth.getBlockNumber();
-    let ResultContract = initContract(ResultRegistryJSON);
-    let deployedResult = await ResultContract.deployed();
-
-    deployedResult.ResultError({fromBlock: latestBlock}, async (error, event) => {
-        if (error) {
-            console.log(error);
-        } else {
-            if (event.blockNumber !== latestBlock) {
-                console.log(event);
-            }
-        }
-        latestBlock = latestBlock + 1;
-    });
-}
-
-
 async function watchOrderEvents() {
     console.log("Listening for smart contract order events...");
     let accounts = await web3.eth.getAccounts();
@@ -326,7 +306,7 @@ async function handleError(msg) {
 
     let ResultRegistry = initContract(ResultRegistryJSON);
     let deployedResultRegistry = await ResultRegistry.deployed();
-    let s = await deployedResultRegistry.errorInResult(web3.utils.fromAscii(msg), {from: currentAccount});
+    let res = await deployedResultRegistry.errorInResult(web3.utils.fromAscii(msg), {from: currentAccount});
 }
 
 async function verifyFunds(softwareID, datasetID, containerID, fundsInOrder) {
