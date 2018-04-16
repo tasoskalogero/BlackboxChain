@@ -13,14 +13,16 @@ contract ResultRegistry {
         address owner
     );
 
+    event ResultError(bytes32 errorMsg);
+
     mapping(address => ResultStruct) resultRegistry;
 
 
-    function addNewResult(address owner, bytes32 newResult) public returns(bool){
+    function addNewResult(address _owner, bytes32 _newResult) public returns(bool){
         require(msg.sender == ORACLE);
 
-        resultRegistry[owner].results.push(newResult);
-        ResultAdded(newResult, owner);
+        resultRegistry[_owner].results.push(_newResult);
+        ResultAdded(_newResult, _owner);
         return true;
     }
 
@@ -28,5 +30,11 @@ contract ResultRegistry {
         require(msg.sender == owner);
 
         return resultRegistry[owner].results;
+    }
+
+
+    function errorInResult(bytes32 _errorMsg) public  {
+        require(msg.sender == ORACLE);
+        ResultError(_errorMsg);
     }
 }

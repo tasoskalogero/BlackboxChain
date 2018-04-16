@@ -27,6 +27,7 @@ export class ResultLayoutComponent implements OnInit {
         this.web3 = this.web3Service.getWeb3();
 
         web3Service.accountsObservable.subscribe(() => {
+
             this.web3.eth.getCoinbase().then(cb => {
                 if(this.prevAccount == null) {
                     this.prevAccount = cb;
@@ -34,10 +35,8 @@ export class ResultLayoutComponent implements OnInit {
                 this.currentAccount = cb;
                 if(this.prevAccount != this.currentAccount) {
                     this.prevAccount = this.currentAccount;
-                    this.refresh();
+                    this.refreshPage();
                 }
-                console.log("NEWWWWWW ",this.currentAccount);
-                console.log(this.prevAccount);
             });
         });
 
@@ -59,7 +58,7 @@ export class ResultLayoutComponent implements OnInit {
         });
     }
 
-    refresh(): void {
+    refreshPage(): void {
         window.location.reload();
     }
 }

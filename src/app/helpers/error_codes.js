@@ -11,7 +11,7 @@ errorMessages[610] = "Error decrypting user data. Aborting.";
 errorMessages[620] = "Error fetching sofwtare in container. Aborting.";
 errorMessages[630] = "Error executing sofwtare in container. Aborting.";
 errorMessages[640] = "Error encrypting result. Aborting.";
-errorMessages[650] = "Error writting result on IPFS. Aborting.";
+errorMessages[650] = "Error writing result on IPFS. Aborting.";
 
 
 module.exports = {

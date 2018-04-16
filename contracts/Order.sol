@@ -1,15 +1,15 @@
 pragma solidity ^0.4.18;
 
 contract DatasetRegistry {
-    function getDatasetPaymentInfo(bytes32)view returns(uint,address) {}
+    function getDatasetPaymentInfo(bytes32) view returns (uint, address) {}
 }
 
 contract SoftwareRegistry {
-    function getSoftwarePaymentInfo(bytes32)view returns(uint,address) {}
+    function getSoftwarePaymentInfo(bytes32) view returns (uint, address) {}
 }
 
 contract ContainerRegistry {
-    function getContainerPaymentInfo(bytes32)view returns(uint,address) {}
+    function getContainerPaymentInfo(bytes32) view returns (uint, address) {}
 }
 
 contract Order {
@@ -22,6 +22,8 @@ contract Order {
         bytes32 containerID;
         bytes32 datasetID;
         bytes32 softwareID;
+
+        bool pending;
 
         address buyer;
         uint totalAmount;
@@ -48,12 +50,12 @@ contract Order {
     }
 
 
-    function getOrderByID(bytes32 orderID) public view returns(bytes32 _contID, bytes32 _dsID, bytes32 _swID, uint _amount, address _buyer){
-        return(orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].totalAmount, orderRegistry[orderID].buyer);
+    function getOrderByID(bytes32 orderID) public view returns (bytes32 _contID, bytes32 _dsID, bytes32 _swID, uint _amount, address _buyer){
+        return (orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].totalAmount, orderRegistry[orderID].buyer);
 
     }
 
-    function newOrder(bytes32 _containerID, bytes32 _datasetID, bytes32 _softwareID) public payable returns(bool){
+    function newOrder(bytes32 _containerID, bytes32 _datasetID, bytes32 _softwareID) public payable returns (bool){
 
         bytes32 newOrderID = keccak256(_containerID, _datasetID, _softwareID, now);
 
@@ -63,8 +65,10 @@ contract Order {
         orderRegistry[newOrderID].datasetID = _datasetID;
         orderRegistry[newOrderID].softwareID = _softwareID;
 
-        orderRegistry[newOrderID].totalAmount = msg.value;
+        orderRegistry[newOrderID].pending = true;
+
         orderRegistry[newOrderID].buyer = msg.sender;
+        orderRegistry[newOrderID].totalAmount = msg.value;
 
         OrderPlaced(newOrderID, _containerID, _datasetID, _softwareID);
 
@@ -72,9 +76,9 @@ contract Order {
     }
 
 
-    //TODO check if order has already been paid - add a bool flag
-    function executePayment(bytes32 _orderID) public returns(bool){
+    function executePayment(bytes32 _orderID) public returns (bool){
         require(msg.sender == ORACLE);
+        require(orderRegistry[_orderID].pending == true);
 
         var (ds_cost, ds_owner) = ds.getDatasetPaymentInfo(orderRegistry[_orderID].datasetID);
 
@@ -85,12 +89,12 @@ contract Order {
         ds_owner.transfer(ds_cost);
         sw_owner.transfer(sw_cost);
         cont_owner.transfer(cont_cost);
-
+        orderRegistry[_orderID].pending = false;
         return true;
     }
 
-    //    function returnFunds(bytes32 paymentID) public returns(bool) {
-//        require(msg.sender == ORACLE);
-//        paymentEntries[paymentID].buyer.transfer(paymentEntries[paymentID].totalAmount);
-//    }
+    function returnFunds(bytes32 _orderID) public returns (bool) {
+        require(msg.sender == ORACLE);
+        orderRegistry[_orderID].buyer.transfer(orderRegistry[_orderID].totalAmount);
+    }
 }

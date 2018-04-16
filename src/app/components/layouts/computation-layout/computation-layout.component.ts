@@ -39,6 +39,7 @@ export class ComputationLayoutComponent implements OnInit {
     uploadedUserPubKeyFile: File;
     dataset: Dataset;
     currentAccount: string;
+    prevAccount: string;
     ResultRegistry: any;
     private txStatus: string;
 
@@ -66,9 +67,18 @@ export class ComputationLayoutComponent implements OnInit {
         });
 
         this.web3 = this.web3Service.getWeb3();
+
         web3Service.accountsObservable.subscribe(() => {
+
             this.web3.eth.getCoinbase().then(cb => {
+                if(this.prevAccount == null) {
+                    this.prevAccount = cb;
+                }
                 this.currentAccount = cb;
+                if(this.prevAccount != this.currentAccount) {
+                    this.prevAccount = this.currentAccount;
+                    this.refreshPage();
+                }
             });
         });
 
@@ -77,17 +87,36 @@ export class ComputationLayoutComponent implements OnInit {
             .then(resultRegistry => {
                 this.ResultRegistry = resultRegistry;
             });
-        this.watchForResult();
+        this.watchForError().then();
+        this.watchForResult().then();
     }
 
 
     ngOnInit() {
     }
 
+    async watchForError() {
+        let latestBlock = await this.web3.eth.getBlockNumber();
+        let deployedResultRegistry = await this.ResultRegistry.deployed();
+        console.log('Watching for errors...');
+        deployedResultRegistry.ResultError({fromBlock: latestBlock}, async (error, event) => {
+            if (error) {
+                console.log(error);
+            } else {
+                if (event.blockNumber !== latestBlock) {
+                    console.log(event.args);
+                    this.setTxStatus('Computation failed.');
+                    this.loggerService.add(this.web3.utils.toAscii(event.args.errorMsg) +  'Funds returned to address ' + this.currentAccount);
+                }
+            }
+            latestBlock = latestBlock + 1;
+        });
+    }
+
     async watchForResult() {
         let latestBlock = await this.web3.eth.getBlockNumber();
         let deployedResultRegistry = await this.ResultRegistry.deployed();
-        console.log('Watching for events');
+        console.log('Watching for results...');
         deployedResultRegistry.ResultAdded({fromBlock: latestBlock}, async (error, event) => {
             if (error) {
                 console.log(error);
@@ -126,7 +155,7 @@ export class ComputationLayoutComponent implements OnInit {
                 } else {
                     console.log(result.tx);
                     this.setTxStatus('Transaction completed! Waiting for result...');
-                    this.loggerService.add('Computation completed successfully - ' + result.tx);
+                    // this.loggerService.add('Transaction completed successfully - ' + result.tx);
                 }
             });
 
@@ -199,5 +228,9 @@ export class ComputationLayoutComponent implements OnInit {
 
     getTxStatus() {
         return this.txStatus;
+    }
+
+    refreshPage(): void {
+        window.location.reload();
     }
 }

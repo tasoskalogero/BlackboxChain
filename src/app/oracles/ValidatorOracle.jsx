@@ -49,8 +49,28 @@ function initContract(artifact) {
     return MyContract;
 }
 
+async function watchResultEvents() {
+    console.log("Listening for smart contract error events...");
 
-async function watchEvents() {
+    let latestBlock = await web3.eth.getBlockNumber();
+    let ResultContract = initContract(ResultRegistryJSON);
+    let deployedResult = await ResultContract.deployed();
+
+    deployedResult.ResultError({fromBlock: latestBlock}, async (error, event) => {
+        if (error) {
+            console.log(error);
+        } else {
+            if (event.blockNumber !== latestBlock) {
+                console.log(event);
+            }
+        }
+        latestBlock = latestBlock + 1;
+    });
+}
+
+
+async function watchOrderEvents() {
+    console.log("Listening for smart contract order events...");
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
@@ -80,8 +100,9 @@ async function watchEvents() {
 
                 let orderInfo = await deployedOrder.getOrderByID.call(orderID, {from: currentAccount});
                 let totalAmount = orderInfo[3].toNumber();
+
                 // CHECK IF AMOUNT SENT IN CONTRACT IS EQUAL TO THE AMOUNT OF THE SELECTED SOFTWARE, DATASET, CONTAINER
-                let successFunds = await verifyFunds(softwareID, datasetID, containerID, totalAmount);
+                let enoughFunds = await verifyFunds(softwareID, datasetID, containerID, totalAmount);
 
                 let datasetMatch = await checkDataset(web3, datasetID);
                 let softwareMatch = await checkSoftware(web3, softwareID);
@@ -89,58 +110,55 @@ async function watchEvents() {
                 let containerDockerID = await getDockerContainerID(web3, containerID);
                 let containerAlive  = await getContainerStatus(containerDockerID);
 
-                if (successFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
+                if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
                     console.log("-------------- ORDER VALID --------------");
                     // CREATE EXEC INSTANCE
                     let execResult = await createExecInstance(containerDockerID, softwareMatch[1], datasetMatch[1], userPubKey);
 
                     if (execResult[0] === "FAILURE") {
-                        // TODO handle error - return money ???
-                        //invalid bdb transaction id of dataset OR cannot create exec instance
-                        console.log("ERROR DURING EXEC CREATE ");
+
+                        // Cannot create exec instance
+                        console.log("[Error creating exec instance.");
+
+                        let msg = "Error before execution.";
+                        await handleError(msg);
+                        await returnFunds(orderID);
+                        console.log("Funds returned");
                     } else {
                         let exec_id = JSON.parse(execResult[1]).Id;
-                        console.log("EXEC_ID = ", exec_id);
 
-                        //EXECUTE
+                        console.log("Execute exec_id: ", exec_id);
+                        // EXECUTE
                         let result = await runExec(exec_id);
 
-                        //TODO error handling
                         result = result.replace(/[\u0001\u0000\u0004]/g, "");
                         result = result.trim();
 
                         let error_codes_array = codes.getErrorCodes();
-
                         if (error_codes_array.includes(parseInt(result))) {
                             let error_msg = codes.getErrorMessage(parseInt(result));
-                            //                 // await revertPayment(paymentID);
-                            //                 res.send(["Failure", error_msg]);
-                            // TODO handle error
+
                             console.log(error_msg);
+                            await handleError(error_msg);
+                            await returnFunds(orderID);
+                            console.log("Funds returned");
                         } else {
-
-                            result = result.replace(/\//g, ""); // remove / from ipfs address result
-                            //                 res.send(["Success", msg]);
-                            console.log("--------------------->", result);
-
+                            result = result.replace(/\//g, ""); // remove '/' from ipfs address result
+                            console.log("Final result received", result);
 
                             await execPayment(orderID, result);
 
                             let resultOwner = orderInfo[4];
                             await storeResult(resultOwner, result);
                         }
-                        //         } catch (e) {
-                        //             // await revertPayment(paymentID);
-                        //             console.log("Returning funds...");
-                        //             res.send(["Failure", "Funds returned"]);
-                        //         }
-                        //     });
-
                     }
-
                     latestBlock = latestBlock + 1;
                 } else {
-                    //TODO handle error - return full amount
+                    let error_msg = "Cannot place order.";
+                    await handleError(error_msg);
+
+                    await returnFunds(orderID);
+                    console.log("Order",orderID," cannot be placed. Funds returned.");
                 }
             }
         }
@@ -182,7 +200,7 @@ async function createExecInstance(containerID, softwareIPFSHash, datasetIpfsHash
                     let error_codes_array = codes.getErrorCodes();
 
                     if (error_codes_array.includes(parseInt(status))) {
-                        console.log("ERROR");
+                        console.log("Error creating exec instance.");
                         resolve([ERROR_STATUS, codes.getErrorMessage(parseInt(status))]);
                     } else {
                         resolve([status, rawData]);
@@ -196,17 +214,6 @@ async function createExecInstance(containerID, softwareIPFSHash, datasetIpfsHash
         post_req.write(bodyCmd);
         post_req.end();
     })
-    //     .then(([status, msg]) => {
-    //     console.log([status, msg]);
-    //     let error_codes_array = codes.getErrorCodes();
-    //     if (error_codes_array.includes(parseInt(status))) {
-    //         console.log("ERROR");
-    //         res.send([ERROR_STATUS, codes.getErrorMessage(parseInt(status))]);
-    //     } else {
-    //         res.send([status, msg]);
-    //     }
-    //
-    // });
 }
 
 async function runExec(execID) {
@@ -280,6 +287,19 @@ async function execPayment(orderID) {
     }
 }
 
+async function returnFunds(orderID) {
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
+
+    let OrderContract = initContract(OrderJSON);
+    let deployedOrder = await OrderContract.deployed();
+    try {
+        let success = await deployedOrder.returnFunds(orderID, {from: currentAccount});
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 async function storeResult(resultOwner, result) {
     // Convert IPFS hash to bytes32 size according to: https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
     let shortResult = '0x' + bs58.decode(result).slice(2).toString('hex');
@@ -299,6 +319,16 @@ async function storeResult(resultOwner, result) {
 
 }
 
+
+async function handleError(msg) {
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
+
+    let ResultRegistry = initContract(ResultRegistryJSON);
+    let deployedResultRegistry = await ResultRegistry.deployed();
+    let s = await deployedResultRegistry.errorInResult(web3.utils.fromAscii(msg), {from: currentAccount});
+}
+
 async function verifyFunds(softwareID, datasetID, containerID, fundsInOrder) {
 
     let sw = await getSoftwareByID(web3, softwareID);
@@ -316,5 +346,5 @@ async function verifyFunds(softwareID, datasetID, containerID, fundsInOrder) {
 }
 
 initWeb3();
-console.log("Listening for smart contract events...");
-watchEvents().then();
+
+watchOrderEvents().then();
