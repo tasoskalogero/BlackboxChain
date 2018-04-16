@@ -1,0 +1,14 @@
+<div class="container">
+    <h3>Results</h3>
+    <p>Here you can see a history with your results.</p>
+
+    <div>
+        <ul id="grouplist" class="list-group">
+            <li style="cursor: pointer" class="list-group-item"
+                *ngFor="let result of fetchedResults">
+                <strong>IPFS Hash:</strong> {{result.ipfsHash}}
+            </li>
+        </ul>
+    </div>
+
+</div>

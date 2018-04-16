@@ -10,8 +10,9 @@ import {DatasetLayoutComponent} from '../dataset-layout/dataset-layout.component
 import {Web3Service} from '../../../util/web3.service';
 import {OrderService} from '../../../services/order.service';
 import Web3 from 'web3';
-import orderContract from "../../../../../build/contracts/Order.json";
+import result_registry from '../../../../../build/contracts/ResultRegistry.json';
 
+declare const Buffer;
 
 @Component({
     selector: 'app-computation-layout',
@@ -38,7 +39,7 @@ export class ComputationLayoutComponent implements OnInit {
     uploadedUserPubKeyFile: File;
     dataset: Dataset;
     currentAccount: string;
-    Order: any;
+    ResultRegistry: any;
     private txStatus: string;
 
     constructor(
@@ -72,9 +73,9 @@ export class ComputationLayoutComponent implements OnInit {
         });
 
         this.web3Service
-            .artifactsToContract(orderContract)
-            .then(order => {
-                this.Order = order;
+            .artifactsToContract(result_registry)
+            .then(resultRegistry => {
+                this.ResultRegistry = resultRegistry;
             });
         this.watchForResult();
     }
@@ -85,16 +86,20 @@ export class ComputationLayoutComponent implements OnInit {
 
     async watchForResult() {
         let latestBlock = await this.web3.eth.getBlockNumber();
-        let deployedOrder = await this.Order.deployed();
+        let deployedResultRegistry = await this.ResultRegistry.deployed();
         console.log('Watching for events');
-        deployedOrder.OrderResult({fromBlock: latestBlock}, async (error, event) => {
+        deployedResultRegistry.ResultAdded({fromBlock: latestBlock}, async (error, event) => {
             if (error) {
                 console.log(error);
             } else {
                 if (event.blockNumber !== latestBlock) {
                     console.log(event.args);
-                    this.loggerService.add(event.args.result);
-                    this.setTxStatus("Order completed successfully");
+                    // let result = event.args.result;
+                    // Create IPFS hash from 32 bytes - https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
+                    // let lengthen =  bs58.encode(Buffer.from('1220' + result.slice(2), 'hex'));
+
+                    // this.loggerService.add(lengthen);
+                    this.setTxStatus('Result stored successfully.');
                 }
             }
             latestBlock = latestBlock + 1;
@@ -109,11 +114,21 @@ export class ComputationLayoutComponent implements OnInit {
         console.log('Selected software received: ', this.software);
         console.log('===========================');
 
-        this.setTxStatus("Placing order...");
+        this.setTxStatus('Placing order...');
         let success = await this.orderService.placeNewOrder(
             this.container,
             this.dataset,
-            this.software);
+            this.software)
+            .then(result => {
+                if (!result) {
+                    this.setTxStatus('Transaction failed!');
+                    this.loggerService.add('Computation failed.');
+                } else {
+                    console.log(result.tx);
+                    this.setTxStatus('Transaction completed! Waiting for result...');
+                    this.loggerService.add('Computation completed successfully - ' + result.tx);
+                }
+            });
 
         // this.readFile(this.uploadedUserPubKeyFile).then(pubkey => {
         //     this.dockerCommunicationService
@@ -175,7 +190,7 @@ export class ComputationLayoutComponent implements OnInit {
             this.pubKeyUploadDisplayComponent.removeFile();
             this.uploadedUserPubKeyFile = null;
         }
-        this.setTxStatus("");
+        this.setTxStatus('');
     }
 
     setTxStatus(status) {

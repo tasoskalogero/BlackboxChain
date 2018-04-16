@@ -52,7 +52,7 @@ export class OrderService {
 
 
   async placeNewOrder(container, dataset, software) {
-
+      console.log("=======",this.currentAccount);
       let swCostWei = await this.getSoftwareCost(software.ID);
 
       let dsCostWei = await this.getDatasetCost(dataset.ID);
@@ -64,12 +64,11 @@ export class OrderService {
 
       let deployedOrder = await this.Order.deployed();
       try {
-          let success = await deployedOrder.newOrder(
+          return await deployedOrder.newOrder(
               container.ID,
               dataset.ID,
               software.ID,
               {from: this.currentAccount, value: totalWei});
-          return success;
       } catch (e) {
           console.log(e);
       }

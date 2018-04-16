@@ -2,8 +2,10 @@ const http = require("http");
 const contract = require("truffle-contract");
 const path = require("path");
 const Web3 = require("web3");
+const bs58 = require('bs58');
 
 const OrderJSON = require(path.join(__dirname,"../../../build/contracts/Order.json"));
+const ResultRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ResultRegistry.json"));
 
 const codes = require("../helpers/error_codes.js");
 
@@ -77,9 +79,9 @@ async function watchEvents() {
                 let containerID = event.args.containerID;
 
                 let orderInfo = await deployedOrder.getOrderByID.call(orderID, {from: currentAccount});
-
+                let totalAmount = orderInfo[3].toNumber();
                 // CHECK IF AMOUNT SENT IN CONTRACT IS EQUAL TO THE AMOUNT OF THE SELECTED SOFTWARE, DATASET, CONTAINER
-                let successFunds = await verifyFunds(softwareID, datasetID, containerID, orderInfo[3].toNumber());
+                let successFunds = await verifyFunds(softwareID, datasetID, containerID, totalAmount);
 
                 let datasetMatch = await checkDataset(web3, datasetID);
                 let softwareMatch = await checkSoftware(web3, softwareID);
@@ -122,9 +124,10 @@ async function watchEvents() {
                             console.log("--------------------->", result);
 
 
-                            console.log("RESULT STORED IN SC");
-                            await execPayment(orderID);
+                            await execPayment(orderID, result);
 
+                            let resultOwner = orderInfo[4];
+                            await storeResult(resultOwner, result);
                         }
                         //         } catch (e) {
                         //             // await revertPayment(paymentID);
@@ -262,7 +265,7 @@ async function revertPayment(paymentID) {
     }
 }
 
-async function execPayment(orderID, result) {
+async function execPayment(orderID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
@@ -270,14 +273,31 @@ async function execPayment(orderID, result) {
     let deployedOrder = await OrderContract.deployed();
 
     try {
-        let success = await deployedOrder.executePayment(orderID, result, {from: currentAccount});
-
+        let success = await deployedOrder.executePayment(orderID, {from: currentAccount});
         console.log("PAYMENT DONE");
     } catch (e) {
         console.log(e);
     }
 }
 
+async function storeResult(resultOwner, result) {
+    // Convert IPFS hash to bytes32 size according to: https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
+    let shortResult = '0x' + bs58.decode(result).slice(2).toString('hex');
+
+    let accounts = await web3.eth.getAccounts();
+    let currentAccount = accounts[9];
+
+    let ResultRegistry = initContract(ResultRegistryJSON);
+    let deployedResultRegistry = await ResultRegistry.deployed();
+
+    try {
+        let success = await deployedResultRegistry.addNewResult(resultOwner, shortResult, {from: currentAccount});
+        console.log("RESULT STORED");
+    } catch (e) {
+
+    }
+
+}
 
 async function verifyFunds(softwareID, datasetID, containerID, fundsInOrder) {
 

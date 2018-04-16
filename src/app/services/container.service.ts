@@ -26,7 +26,7 @@ export class ContainerService {
         });
 
         this.web3Service.artifactsToContract(container_registry)
-            .then(async ContainerRepo => {
+            .then(ContainerRepo => {
                 this.ContainerRegistry = ContainerRepo;
             });
     }

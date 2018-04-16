@@ -23,8 +23,6 @@ contract Order {
         bytes32 datasetID;
         bytes32 softwareID;
 
-        bytes32 result;
-
         address buyer;
         uint totalAmount;
     }
@@ -34,11 +32,6 @@ contract Order {
         bytes32 indexed containerID,
         bytes32 indexed datasetID,
         bytes32 softwareID
-    );
-
-    event OrderResult (
-        bytes32 result,
-        address buyer
     );
 
     bytes32[] orderIDs;
@@ -55,8 +48,8 @@ contract Order {
     }
 
 
-    function getOrderByID(bytes32 orderID) public view returns(bytes32 _contID, bytes32 _dsID, bytes32 _swID, uint _amount){
-        return(orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].totalAmount);
+    function getOrderByID(bytes32 orderID) public view returns(bytes32 _contID, bytes32 _dsID, bytes32 _swID, uint _amount, address _buyer){
+        return(orderRegistry[orderID].containerID, orderRegistry[orderID].datasetID, orderRegistry[orderID].softwareID, orderRegistry[orderID].totalAmount, orderRegistry[orderID].buyer);
 
     }
 
@@ -80,7 +73,7 @@ contract Order {
 
 
     //TODO check if order has already been paid - add a bool flag
-    function executePayment(bytes32 _orderID, bytes32 _result) public returns(bool){
+    function executePayment(bytes32 _orderID) public returns(bool){
         require(msg.sender == ORACLE);
 
         var (ds_cost, ds_owner) = ds.getDatasetPaymentInfo(orderRegistry[_orderID].datasetID);
@@ -92,9 +85,6 @@ contract Order {
         ds_owner.transfer(ds_cost);
         sw_owner.transfer(sw_cost);
         cont_owner.transfer(cont_cost);
-
-        orderRegistry[_orderID].result = _result;
-        OrderResult(orderRegistry[_orderID].result, orderRegistry[_orderID].buyer);
 
         return true;
     }

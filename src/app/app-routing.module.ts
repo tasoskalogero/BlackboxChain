@@ -6,6 +6,7 @@ import {DatasetComponent} from './components/dataset/dataset.component';
 import {HomeComponent} from './components/home/home.component';
 import {ContainerComponent} from './components/container/container.component';
 import {ComputationLayoutComponent} from './components/layouts/computation-layout/computation-layout.component';
+import {ResultLayoutComponent} from './components/layouts/result-layout/result-layout.component';
 
 
 const appRoutes: Routes = [
@@ -14,6 +15,7 @@ const appRoutes: Routes = [
   { path: 'software', component: SoftwareComponent},
   { path: 'dataset', component: DatasetComponent},
   { path: 'container', component: ContainerComponent},
+    { path: 'results', component: ResultLayoutComponent},
   { path: '',   redirectTo: '/home', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent },
   ];

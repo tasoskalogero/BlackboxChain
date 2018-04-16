@@ -7,7 +7,7 @@ let txid = process.argv[2];
 conn.searchAssets(txid)
     .then(assets => {
         if(assets.length === 0) console.log("Error");
-        else console.log("Found assets:", assets[0].data)
+        else console.log("Found assets:", assets[0])
     });
 
 // conn.searchMetadata(txid)
@@ -15,3 +15,5 @@ conn.searchAssets(txid)
 
 // conn.searchMetadata("\"Print hello\"")
 //   .then(assets => console.log('Found metadata:', assets));
+
+

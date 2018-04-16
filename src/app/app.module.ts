@@ -25,6 +25,8 @@ import {ContainerLayoutComponent} from './components/layouts/container-layout/co
 import {CommunicationService} from './services/communication.service';
 import {OrderService} from './services/order.service';
 import {BcdbService} from './services/bcdb.service';
+import {ResultLayoutComponent} from './components/layouts/result-layout/result-layout.component';
+import {ResultService} from './services/result.service';
 
 
 
@@ -41,7 +43,8 @@ import {BcdbService} from './services/bcdb.service';
     ContainerLayoutComponent,
     PubKeyUploadLayoutComponent,
     DatasetComponent,
-    DatasetLayoutComponent
+    DatasetLayoutComponent,
+    ResultLayoutComponent
   ],
   imports: [
     BrowserModule,
@@ -50,7 +53,7 @@ import {BcdbService} from './services/bcdb.service';
     HttpClientModule,
     AppRoutingModule
   ],
-  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BcdbService, OrderService],
+  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BcdbService, OrderService, ResultService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
