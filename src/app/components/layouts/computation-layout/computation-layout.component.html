@@ -28,32 +28,8 @@
             <button type="submit" class="btn btn-danger" (click)="cancel()">Cancel</button>
         </div>
     </div>
-
-  <!--<div class="row align-items-start">-->
-    <!--<div class="col">-->
-      <!--<div class="row">-->
-        <!--<div class="col">-->
-          <!--<app-pub-key-upload></app-pub-key-upload>-->
-        <!--</div>-->
-        <!--<div class="row">-->
-          <!--<div class="col">-->
-            <!--<app-software-layout></app-software-layout>-->
-          <!--</div>-->
-          <!--<div class="col">-->
-            <!--<app-dataset-layout></app-dataset-layout>-->
-          <!--</div>-->
-          <!--<div class="col">-->
-            <!--<app-container-layout></app-container-layout>-->
-          <!--</div>-->
-        <!--</div>-->
-      <!--</div>-->
-      <!--<div class="w-100"></div>-->
-      <!--<div class="col">-->
-        <!--<button type="submit" class="btn btn-primary" (click)="onSubmit()" [disabled]="(!software || !container ||!uploadedUserPubKeyFile || !dataset)">Run</button>-->
-        <!--<button type="submit" class="btn btn-danger" (click)="cancel()">Cancel</button>-->
-      <!--</div>-->
-      <!--<div class="w-100"></div>-->
-    <!--</div>-->
-  <!--</div>-->
 </div>
-<span id="status">{{getTxStatus()}}</span>
+<div *ngIf=getTxStatus() id="status" class="alert alert-warning" role="alert">
+    <strong>{{getTxStatus()}}</strong>
+</div>
+

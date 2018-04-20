@@ -11,11 +11,12 @@ contract OrderDb {
 }
 
 contract OrderManager {
-	address oracle;
-	address cpAddr;
+	address public oracle;
+	address public cpAddr;
+    address public orderDB;
 
 	event ZeroFunds();
-	event OrderDbNotValidAvailable();
+	event OrderDbNotAvailable();
 	event OrderManagerPlaceOrderFailed();
 	event OrderCancelled();
 	event OrderCancelFailed();
@@ -28,7 +29,7 @@ contract OrderManager {
 	}
 
 	function OrderManager(address contractProviderAddr) {
-		oracle = 0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE; 		// web3.eth.accounts[9]
+		oracle = 0x5aeda56215b167893e80b4fe645ba6d5bab767de; 		// web3.eth.accounts[9]
 		cpAddr = contractProviderAddr;
 	}
 
@@ -43,7 +44,7 @@ contract OrderManager {
 		// orderdb not available
 		if(orderdb == 0x0) {
 			msg.sender.transfer(msg.value);
-			OrderDbNotValidAvailable();
+			OrderDbNotAvailable();
 			return false;
 		}
 
@@ -58,8 +59,10 @@ contract OrderManager {
 
 	function fulfillOrder(bytes32 _orderID) onlyOracle returns (bool res) {
 		address orderdb = ContractProvider(cpAddr).contracts("orderdb");
+        orderDB = orderdb;
+
 		if(orderdb == 0x0) {
-			OrderDbNotValidAvailable();
+			OrderDbNotAvailable();
 			return false;
 		}
 		bool success = OrderDb(orderdb).fulfillOrder(_orderID);
@@ -74,8 +77,10 @@ contract OrderManager {
 
 	function cancelOrder(bytes32 _orderID) onlyOracle returns (bool res) {
 		address orderdb = ContractProvider(cpAddr).contracts("orderdb");
-		if(orderdb == 0x0) {
-			OrderDbNotValidAvailable();
+        orderDB = orderdb;
+
+        if(orderdb == 0x0) {
+			OrderDbNotAvailable();
 			return false;
 		}
 

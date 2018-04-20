@@ -48,5 +48,8 @@
         </div>
     </form>
 
-    <span id="status">{{getTxStatus()}}</span>
+    <!--<span id="status">{{getTxStatus()}}</span>-->
+</div>
+<div *ngIf=getTxStatus() id="status" class="alert alert-warning" role="alert">
+    <strong>{{getTxStatus()}}</strong>
 </div>

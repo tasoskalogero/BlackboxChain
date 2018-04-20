@@ -106,7 +106,8 @@ export class ComputationLayoutComponent implements OnInit {
                 if (event.blockNumber !== latestBlock) {
                     console.log(event.args);
                     this.setTxStatus('Computation failed.');
-                    this.loggerService.add(this.web3.utils.toAscii(event.args.errorMsg) +  'Funds returned to address ' + this.currentAccount);
+                    this.loggerService.add(this.web3.utils.toAscii(event.args.errorMsg));
+                    this.loggerService.add('Funds returned to address ' + this.currentAccount);
                 }
             }
             latestBlock = latestBlock + 1;
@@ -127,8 +128,8 @@ export class ComputationLayoutComponent implements OnInit {
                     // Create IPFS hash from 32 bytes - https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
                     // let lengthen =  bs58.encode(Buffer.from('1220' + result.slice(2), 'hex'));
 
-                    // this.loggerService.add(lengthen);
                     this.setTxStatus('Result stored successfully.');
+                    this.loggerService.add("Transaction completed successfully.");
                 }
             }
             latestBlock = latestBlock + 1;
@@ -154,39 +155,9 @@ export class ComputationLayoutComponent implements OnInit {
                     this.loggerService.add('Computation failed.');
                 } else {
                     console.log(result.tx);
-                    this.setTxStatus('Transaction completed! Waiting for result...');
-                    // this.loggerService.add('Transaction completed successfully - ' + result.tx);
+                    this.setTxStatus('Transaction sent! Waiting for result...');
                 }
             });
-
-        // this.readFile(this.uploadedUserPubKeyFile).then(pubkey => {
-        //     this.dockerCommunicationService
-        //         .execCreate(this.container, this.software, this.dataset, pubkey)
-        //         .subscribe(async res => {
-        //             console.log('----------- ', res);
-        //             if (res[0] == "FAILURE") {
-        //                 //invalid bcdb transaction id of dataset OR cannot create exec instance
-        //                 this.loggerService.add(res[1]);
-        //             } else {
-        //                 let exec_id = JSON.parse(res[1]).Id;
-        //
-        //                 let success = await this.orderService.placeNewOrder(
-        //                     this.container,
-        //                     this.dataset,
-        //                     this.software
-        //                 );
-        //                 //TODO change
-        //                 let paymentID = "";
-        //                 this.dockerCommunicationService
-        //                     .execStart(exec_id, paymentID)
-        //                     .subscribe(res => {
-        //                         let ipfsHash = res[1];
-        //                         console.log(ipfsHash);
-        //                         this.loggerService.add(res[0] + ' - ' + ipfsHash);
-        //                     });
-        //             }
-        //         });
-        // });
     }
 
     readFile(file: File) {

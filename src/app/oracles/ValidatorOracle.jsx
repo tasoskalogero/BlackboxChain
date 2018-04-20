@@ -8,7 +8,7 @@ const OrderManagerJSON = require(path.join(__dirname,"../../../build/contracts/O
 const OrderDbJSON = require(path.join(__dirname,"../../../build/contracts/OrderDb.json"));
 const ResultRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ResultRegistry.json"));
 
-const codes = require("../helpers/error_codes.js");
+const errors = require("../helpers/error_codes.js");
 
 let dataset_methods = require('../helpers/dataset_manager');
 let getDatasetByID = dataset_methods.getDatasetByID;
@@ -61,9 +61,6 @@ async function watchOrderEvents() {
     let currentAccount = accounts[9];
 
     let latestBlock = await web3.eth.getBlockNumber();
-
-    let OrderManager = initContract(OrderManagerJSON);
-    let deployedOrderManager = await OrderManager.deployed();
 
     let OrderDb= initContract(OrderDbJSON);
     let deployedOrderDb = await OrderDb.deployed();
@@ -124,9 +121,9 @@ async function watchOrderEvents() {
                         result = result.replace(/[\u0001\u0000\u0004]/g, "");
                         result = result.trim();
 
-                        let error_codes_array = codes.getErrorCodes();
+                        let error_codes_array = errors.getErrorCodes();
                         if (error_codes_array.includes(parseInt(result))) {
-                            let error_msg = codes.getErrorMessage(parseInt(result));
+                            let error_msg = errors.getErrorMessage(parseInt(result));
 
                             console.log(error_msg);
                             await handleError(error_msg);
@@ -136,10 +133,26 @@ async function watchOrderEvents() {
                             result = result.replace(/\//g, ""); // remove '/' from ipfs address result
                             console.log("Final result received", result);
 
-                            await execPayment(orderID, result);
+                            let successPayment = await execPayment(orderID);
 
-                            let resultOwner = orderInfo[4];
-                            await storeResult(resultOwner, result);
+                            // Order fulfilled - funds transferred to providers
+                            if(successPayment === 0) {
+
+                                let resultOwner = orderInfo[4];
+
+                                let successStore = await storeResult(resultOwner, result);
+
+                                if(successStore === 1) {
+                                    await handleError("Failed to store result.");
+                                    await returnFunds(orderID);
+                                    console.log("Failed to store the result for the order ",orderID,". Funds returned.");
+                                }
+                            // Order failed to fulfill - funds returned to buyer
+                            } else {
+                                await handleError("Failed to fulfill order.");
+                                await returnFunds(orderID);
+                                console.log("Failed to fulfill the order ",orderID,". Funds returned.");
+                            }
                         }
                     }
                     latestBlock = latestBlock + 1;
@@ -187,11 +200,11 @@ async function createExecInstance(containerID, softwareIPFSHash, datasetIpfsHash
                 })
                 .on("end", () => {
                     console.log("RESULT = ", rawData);
-                    let error_codes_array = codes.getErrorCodes();
+                    let error_codes_array = errors.getErrorCodes();
 
                     if (error_codes_array.includes(parseInt(status))) {
                         console.log("Error creating exec instance.");
-                        resolve([ERROR_STATUS, codes.getErrorMessage(parseInt(status))]);
+                        resolve([ERROR_STATUS, errors.getErrorMessage(parseInt(status))]);
                     } else {
                         resolve([status, rawData]);
                     }
@@ -266,14 +279,17 @@ async function execPayment(orderID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
-    let OrderDb = initContract(OrderDbJSON);
-    let deployedDb = await OrderDb.deployed();
+    let OrderManager = initContract(OrderManagerJSON);
+    let deployedOrderManager = await OrderManager.deployed();
 
     try {
-        let success = await deployedDb.fulfillOrder(orderID, {from: currentAccount});
+        console.log(orderID);
+        let success = await deployedOrderManager.fulfillOrder(orderID, {from: currentAccount, gas: 3000000});
         console.log("PAYMENT DONE");
+        return 0;
     } catch (e) {
         console.log(e);
+        return 1;
     }
 }
 
@@ -283,6 +299,7 @@ async function returnFunds(orderID) {
 
     let OrderManager = initContract(OrderManagerJSON);
     let deployedOrderManager = await OrderManager.deployed();
+
     try {
         let success = await deployedOrderManager.cancelOrder(orderID, {from: currentAccount});
     } catch (e) {
@@ -291,6 +308,7 @@ async function returnFunds(orderID) {
 }
 
 async function storeResult(resultOwner, result) {
+    //result is an IPFS hash
     // Convert IPFS hash to bytes32 size according to: https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
     let shortResult = '0x' + bs58.decode(result).slice(2).toString('hex');
 
@@ -303,12 +321,11 @@ async function storeResult(resultOwner, result) {
     try {
         let success = await deployedResultRegistry.addNewResult(resultOwner, shortResult, {from: currentAccount});
         console.log("RESULT STORED");
+        return 0;
     } catch (e) {
-
+        return 1;
     }
-
 }
-
 
 async function handleError(msg) {
     let accounts = await web3.eth.getAccounts();

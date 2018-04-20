@@ -21,6 +21,7 @@ contract OrderDb {
     enum OrderStatus {PLACED, SUCCEED, CANCELLED}
 
     address cpAddr;
+    address public orderM;
 
     struct OrderInfo {
         bytes32 orderID;
@@ -41,9 +42,6 @@ contract OrderDb {
         bytes32 indexed datasetID,
         bytes32 softwareID
     );
-    event OrderManagerNotAvailable();
-    event InvalidSender();
-    event PlaceOrderFailed();
 
     function OrderDb(address contractProviderAddr) {
         cpAddr = contractProviderAddr;
@@ -58,7 +56,6 @@ contract OrderDb {
     function placeOrder(bytes32 _containerID, bytes32 _datasetID, bytes32 _softwareID, address _fromAddr) public payable returns (bool res) {
         address ordermanager = ContractProvider(cpAddr).contracts("ordermanager");
         if (ordermanager == 0x0) {
-            OrderManagerNotAvailable();
             msg.sender.transfer(msg.value);
             return false;
         }
@@ -84,27 +81,26 @@ contract OrderDb {
             return true;
         }
 
-        PlaceOrderFailed();
         msg.sender.transfer(msg.value);
         return false;
     }
 
 
-    function getDatasetInfo(bytes32 _orderID) internal returns (uint cost, address owner) {
+    function getDatasetInfo(bytes32 _orderID) private returns (uint cost, address owner) {
         bytes32 dsID = orderRegistry[_orderID].datasetID;
         address datasetRegAddr = ContractProvider(cpAddr).contracts("datasetReg");
         var (ds_cost, ds_owner) = DatasetRegistry(datasetRegAddr).getPaymentInfo(dsID);
         return (ds_cost, ds_owner);
     }
 
-    function getContainerInfo(bytes32 _orderID) internal returns (uint cost, address owner) {
+    function getContainerInfo(bytes32 _orderID) private returns (uint cost, address owner) {
         bytes32 cID = orderRegistry[_orderID].containerID;
         address containerRegAddr = ContractProvider(cpAddr).contracts("containerReg");
         var (cont_cost, cont_owner) = ContainerRegistry(containerRegAddr).getPaymentInfo(cID);
         return (cont_cost, cont_owner);
     }
 
-    function getSoftwareInfo(bytes32 _orderID) internal returns (uint cost, address owner) {
+    function getSoftwareInfo(bytes32 _orderID) private returns (uint cost, address owner) {
         address softwareRegAddr = ContractProvider(cpAddr).contracts("softwareReg");
         bytes32 swID = orderRegistry[_orderID].softwareID;
         var (sw_cost, sw_owner) = SoftwareRegistry(softwareRegAddr).getPaymentInfo(swID);
@@ -113,39 +109,41 @@ contract OrderDb {
 
     function fulfillOrder(bytes32 _orderID) onlyIfPlaced(_orderID) public returns (bool res) {
         address ordermanager = ContractProvider(cpAddr).contracts("ordermanager");
+        orderM = ordermanager;
         if (ordermanager == 0x0) {
-            OrderManagerNotAvailable();
             return false;
         }
 
-        var (ds_cost, ds_owner) = getDatasetInfo(_orderID);
+        if (msg.sender == ordermanager) {
+            var (ds_cost, ds_owner) = getDatasetInfo(_orderID);
 
-        var (sw_cost, sw_owner) = getDatasetInfo(_orderID);
+            var (sw_cost, sw_owner) = getSoftwareInfo(_orderID);
 
 
-        var (cont_cost, cont_owner) = getDatasetInfo(_orderID);
+            var (cont_cost, cont_owner) = getContainerInfo(_orderID);
 
-        ds_owner.transfer(ds_cost);
-        sw_owner.transfer(sw_cost);
-        cont_owner.transfer(cont_cost);
+            ds_owner.transfer(ds_cost);
+            sw_owner.transfer(sw_cost);
+            cont_owner.transfer(cont_cost);
 
-        orderRegistry[_orderID].status = OrderStatus.SUCCEED;
-        return true;
+            orderRegistry[_orderID].status = OrderStatus.SUCCEED;
+            return true;
+        }
+        return false;
     }
 
 
     function cancelOrder(bytes32 _orderID) onlyIfPlaced(_orderID) public returns (bool res) {
         address ordermanager = ContractProvider(cpAddr).contracts("ordermanager");
         if (ordermanager == 0x0) {
-            OrderManagerNotAvailable();
             return false;
         }
+
         if (msg.sender == ordermanager) {
             orderRegistry[_orderID].status = OrderStatus.CANCELLED;
             orderRegistry[_orderID].buyer.transfer(orderRegistry[_orderID].amount);
             return true;
         }
-        InvalidSender();
         return false;
     }
 
