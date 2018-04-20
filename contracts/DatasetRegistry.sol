@@ -31,7 +31,7 @@ contract DatasetRegistry {
     return (datasetRegistry[_id].bcdbTxID, datasetRegistry[_id].checksum, datasetRegistry[_id].cost, datasetRegistry[_id].owner);
   }
 
-  function getDatasetPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
+  function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
       return (datasetRegistry[_id].cost, datasetRegistry[_id].owner);
   }
 }

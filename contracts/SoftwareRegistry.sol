@@ -30,7 +30,7 @@ contract SoftwareRegistry {
         return (softwareRegistry[_id].bcdbTxID, softwareRegistry[_id].checksum, softwareRegistry[_id].cost, softwareRegistry[_id].owner);
     }
 
-    function getSoftwarePaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
+    function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
         return (softwareRegistry[_id].cost, softwareRegistry[_id].owner);
     }
 }

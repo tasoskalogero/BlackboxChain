@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Web3Service} from '../util/web3.service';
-import order from "../../../build/contracts/Order.json";
+import order_manager from "../../../build/contracts/OrderManager.json";
 import software_registry from "../../../build/contracts/SoftwareRegistry.json";
 import dataset_registry from "../../../build/contracts/DatasetRegistry.json";
 import container_registry from '../../../build/contracts/ContainerRegistry.json';
@@ -11,7 +11,7 @@ import {BcdbService} from './bcdb.service';
 export class OrderService {
     private currentAccount: string;
     private web3: Web3;
-    private Order: any;
+    private OrderManager: any;
     private SoftwareRegistry: any;
     private DatasetRegistry: any;
     private ContainerRegistry: any;
@@ -26,9 +26,9 @@ export class OrderService {
           });
       });
       this.web3Service
-          .artifactsToContract(order)
-          .then(SoftwareRepo => {
-              this.Order = SoftwareRepo;
+          .artifactsToContract(order_manager)
+          .then(OrderManager => {
+              this.OrderManager = OrderManager;
           });
 
       this.web3Service
@@ -62,9 +62,9 @@ export class OrderService {
       let totalWei = +swCostWei + +dsCostWei + +containerCostWei;
       console.log(totalWei);
 
-      let deployedOrder = await this.Order.deployed();
+      let deployedOrder = await this.OrderManager.deployed();
       try {
-          return await deployedOrder.newOrder(
+          return await deployedOrder.placeOrder(
               container.ID,
               dataset.ID,
               software.ID,

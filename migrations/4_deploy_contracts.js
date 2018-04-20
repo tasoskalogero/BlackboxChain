@@ -1,5 +1,5 @@
-var DatasetRepository = artifacts.require("./DatasetRegistry.sol");
+var DatasetRegistry = artifacts.require("./DatasetRegistry.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(DatasetRepository );
+  deployer.deploy(DatasetRegistry);
 };

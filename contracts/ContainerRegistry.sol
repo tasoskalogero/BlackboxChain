@@ -31,7 +31,7 @@ contract ContainerRegistry {
         return (containerRegistry[_id].bcdbTxID, containerRegistry[_id].checksum, containerRegistry[_id].cost, containerRegistry[_id].owner);
     }
 
-    function getContainerPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
+    function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
         return (containerRegistry[_id].cost, containerRegistry[_id].owner);
     }
 }

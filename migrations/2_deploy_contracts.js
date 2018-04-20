@@ -1,5 +1,5 @@
-var SoftwareRegistry = artifacts.require("./SoftwareRegistry.sol");
+var ContractManager = artifacts.require("./ContractManager.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(SoftwareRegistry);
+  deployer.deploy(ContractManager);
 };

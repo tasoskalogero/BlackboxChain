@@ -4,7 +4,8 @@ const path = require("path");
 const Web3 = require("web3");
 const bs58 = require('bs58');
 
-const OrderJSON = require(path.join(__dirname,"../../../build/contracts/Order.json"));
+const OrderManagerJSON = require(path.join(__dirname,"../../../build/contracts/OrderManager.json"));
+const OrderDbJSON = require(path.join(__dirname,"../../../build/contracts/OrderDb.json"));
 const ResultRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ResultRegistry.json"));
 
 const codes = require("../helpers/error_codes.js");
@@ -22,11 +23,15 @@ let getContainerByID = container_methods.getContainerByID;
 let getDockerContainerID = container_methods.getDockerContainerID;
 let getContainerStatus = container_methods.getContainerStatus;
 
+let contract_manager = require('../helpers/contract_manager');
+let addContracts = contract_manager.addContracts;
+
 
 let web3;
 const ERROR_STATUS = "FAILURE";
 
 function initWeb3() {
+    let web3;
     console.log("Initializing web3");
     if (typeof web3 !== "undefined") {
         web3 = new Web3(web3.currentProvider);
@@ -34,6 +39,7 @@ function initWeb3() {
         // set the provider you want from Web3.providers
         web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
     }
+    return web3;
 }
 
 function initContract(artifact) {
@@ -50,15 +56,19 @@ function initContract(artifact) {
 }
 
 async function watchOrderEvents() {
-    console.log("Listening for smart contract order events...");
+    console.log("Listening for smart contract order_manager events...");
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
     let latestBlock = await web3.eth.getBlockNumber();
-    let OrderContract = initContract(OrderJSON);
-    let deployedOrder = await OrderContract.deployed();
 
-    deployedOrder.OrderPlaced({fromBlock: latestBlock}, async (error, event) => {
+    let OrderManager = initContract(OrderManagerJSON);
+    let deployedOrderManager = await OrderManager.deployed();
+
+    let OrderDb= initContract(OrderDbJSON);
+    let deployedOrderDb = await OrderDb.deployed();
+
+    deployedOrderDb.OrderPlaced({fromBlock: latestBlock}, async (error, event) => {
         if (error) {
             console.log(error);
         } else {
@@ -78,8 +88,8 @@ async function watchOrderEvents() {
                 let datasetID = event.args.datasetID;
                 let containerID = event.args.containerID;
 
-                let orderInfo = await deployedOrder.getOrderByID.call(orderID, {from: currentAccount});
-                let totalAmount = orderInfo[3].toNumber();
+                let orderInfo = await deployedOrderDb.orderRegistry.call(orderID, {from: currentAccount});
+                let totalAmount = orderInfo[5].toNumber();
 
                 // CHECK IF AMOUNT SENT IN CONTRACT IS EQUAL TO THE AMOUNT OF THE SELECTED SOFTWARE, DATASET, CONTAINER
                 let enoughFunds = await verifyFunds(softwareID, datasetID, containerID, totalAmount);
@@ -134,7 +144,7 @@ async function watchOrderEvents() {
                     }
                     latestBlock = latestBlock + 1;
                 } else {
-                    let error_msg = "Cannot place order.";
+                    let error_msg = "Cannot place order_manager.";
                     await handleError(error_msg);
 
                     await returnFunds(orderID);
@@ -256,11 +266,11 @@ async function execPayment(orderID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
-    let OrderContract = initContract(OrderJSON);
-    let deployedOrder = await OrderContract.deployed();
+    let OrderDb = initContract(OrderDbJSON);
+    let deployedDb = await OrderDb.deployed();
 
     try {
-        let success = await deployedOrder.executePayment(orderID, {from: currentAccount});
+        let success = await deployedDb.fulfillOrder(orderID, {from: currentAccount});
         console.log("PAYMENT DONE");
     } catch (e) {
         console.log(e);
@@ -271,10 +281,10 @@ async function returnFunds(orderID) {
     let accounts = await web3.eth.getAccounts();
     let currentAccount = accounts[9];
 
-    let OrderContract = initContract(OrderJSON);
-    let deployedOrder = await OrderContract.deployed();
+    let OrderManager = initContract(OrderManagerJSON);
+    let deployedOrderManager = await OrderManager.deployed();
     try {
-        let success = await deployedOrder.returnFunds(orderID, {from: currentAccount});
+        let success = await deployedOrderManager.cancelOrder(orderID, {from: currentAccount});
     } catch (e) {
         console.log(e);
     }
@@ -325,6 +335,9 @@ async function verifyFunds(softwareID, datasetID, containerID, fundsInOrder) {
 
 }
 
-initWeb3();
 
-watchOrderEvents().then();
+web3 = initWeb3();
+addContracts(web3).then(() => {
+    console.log("Contracts added to CMC");
+    watchOrderEvents().then();
+})
