@@ -12,9 +12,9 @@ import {ResultLayoutComponent} from './components/layouts/result-layout/result-l
 const appRoutes: Routes = [
   { path: 'home', component: HomeComponent},
   { path: 'computation', component: ComputationLayoutComponent},
-  { path: 'software', component: SoftwareComponent},
-  { path: 'dataset', component: DatasetComponent},
-  { path: 'container', component: ContainerComponent},
+    { path: 'container', component: ContainerComponent},
+    { path: 'dataset', component: DatasetComponent},
+    { path: 'software', component: SoftwareComponent},
     { path: 'results', component: ResultLayoutComponent},
   { path: '',   redirectTo: '/home', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent },

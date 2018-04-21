@@ -77,7 +77,7 @@ export class ComputationLayoutComponent implements OnInit {
                 this.currentAccount = cb;
                 if(this.prevAccount != this.currentAccount) {
                     this.prevAccount = this.currentAccount;
-                    this.refreshPage();
+                    // this.refreshPage();
                 }
             });
         });

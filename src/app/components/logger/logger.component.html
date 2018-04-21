@@ -1,5 +1,5 @@
 <div class="container">
-    <h2 style="display: inline-block" >Log</h2> <button style="display: inline-block" type="button" class="btn btn-link" (click)="loggerService.clearLog()">clear</button>
+    <h2 style="display: inline-block" ><span class="badge badge-light">Log</span></h2> <button style="display: inline-block" type="button" class="btn btn-link" (click)="loggerService.clearLog()">clear</button>
     <textarea readonly name="logger" class="form-control"> {{loggerService.getLoggedMessages()}} </textarea>
 </div>
 

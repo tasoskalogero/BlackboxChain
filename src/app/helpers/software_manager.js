@@ -1,34 +1,32 @@
-const Web3 = require("web3");
 let md5 = require('md5');
 const path = require("path");
-const contract = require("truffle-contract");
 const driver = require("bigchaindb-driver");
 
 const API_PATH = "http://localhost:59984/api/v1/";
 const conn = new driver.Connection(API_PATH);
 
 const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
+let contract_manager = require('./contract_manager');
+let initContract = contract_manager.initContract;
 
-function initContract(web3, artifact) {
-    let MyContract = contract(artifact);
-    MyContract.setProvider(web3.currentProvider);
+// function initContract(web3, artifact) {
+//     let MyContract = contract(artifact);
+//     MyContract.setProvider(web3.currentProvider);
+//
+//     //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
+//     if (typeof MyContract.currentProvider.sendAsync !== "function") {
+//         MyContract.currentProvider.sendAsync = function () {
+//             return MyContract.currentProvider.send.apply(MyContract.currentProvider, arguments);
+//         };
+//     }
+//     return MyContract;
+// }
 
-    //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
-    if (typeof MyContract.currentProvider.sendAsync !== "function") {
-        MyContract.currentProvider.sendAsync = function () {
-            return MyContract.currentProvider.send.apply(MyContract.currentProvider, arguments);
-        };
-    }
-    return MyContract;
-}
-
-exports.getSoftwareByID = async function(web3, softwareID) {
-    let accounts = await web3.eth.getAccounts();
-    let currentAccount = accounts[9];
+exports.getSoftwareByID = async function(web3, softwareID, oracleAccount) {
     let SoftwareRegistry = initContract(web3, SoftwareRegistryJSON);
     let deployedSoftwareRegistry = await SoftwareRegistry.deployed();
     try {
-        let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: currentAccount});
+        let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: oracleAccount});
         let bcdbTxID = softwareInfo [0];
 
         let softwareAssets = await conn.searchAssets(bcdbTxID);
@@ -42,13 +40,11 @@ exports.getSoftwareByID = async function(web3, softwareID) {
     }
 };
 
-exports.checkSoftware = async function(web3, softwareID) {
-    let accounts = await web3.eth.getAccounts();
-    let currentAccount = accounts[9];
+exports.checkSoftware = async function(web3, softwareID, oracleAccount) {
     let SoftwareRegistry = initContract(web3, SoftwareRegistryJSON);
     let deployedSoftwareRegistry = await SoftwareRegistry.deployed();
     try {
-        let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: currentAccount});
+        let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: oracleAccount});
         let bcdbTxID = softwareInfo [0];
         let checksum = softwareInfo [1];
 
