@@ -1,5 +1,5 @@
-var ContractManager = artifacts.require("./ContractManager.sol");
+var ContractProvider = artifacts.require("./ContractProvider.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(ContractManager);
+  deployer.deploy(ContractProvider);
 };

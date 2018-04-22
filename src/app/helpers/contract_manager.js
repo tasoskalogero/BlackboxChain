@@ -1,7 +1,7 @@
 const path = require("path");
 const contract = require("truffle-contract");
 
-const ContractManagerJSON = require(path.join(__dirname,"../../../build/contracts/ContractManager.json"));
+const ContractProviderJSON = require(path.join(__dirname,"../../../build/contracts/ContractProvider.json"));
 const ContainerRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ContainerRegistry.json"));
 const DatasetRegistryJSON = require(path.join(__dirname,"../../../build/contracts/DatasetRegistry.json"));
 const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
@@ -39,11 +39,11 @@ exports.addContracts = async function(web3, oracleAccount) {
     let deployedOrderManager = await OrderManager.deployed();
 
 
-    let ContractManager = module.exports.initContract(web3, ContractManagerJSON);
-    let deployedContractManager = await ContractManager.deployed();
-    await deployedContractManager.addContract("containerReg",deployedContainerRegistry.address, {from: oracleAccount});
-    await deployedContractManager.addContract("datasetReg", deployedDatasetRegistry.address, {from: oracleAccount});
-    await deployedContractManager.addContract("softwareReg", deployedSoftwareRegistry.address, {from: oracleAccount});
-    await deployedContractManager.addContract("orderdb", deployedOrderDb.address, {from: oracleAccount});
-    await deployedContractManager.addContract("ordermanager", deployedOrderManager.address, {from: oracleAccount});
+    let ContractProvider = module.exports.initContract(web3, ContractProviderJSON);
+    let deployedContractProvider = await ContractProvider.deployed();
+    await deployedContractProvider.addContract("containerReg",deployedContainerRegistry.address, {from: oracleAccount});
+    await deployedContractProvider.addContract("datasetReg", deployedDatasetRegistry.address, {from: oracleAccount});
+    await deployedContractProvider.addContract("softwareReg", deployedSoftwareRegistry.address, {from: oracleAccount});
+    await deployedContractProvider.addContract("orderdb", deployedOrderDb.address, {from: oracleAccount});
+    await deployedContractProvider.addContract("ordermanager", deployedOrderManager.address, {from: oracleAccount});
 };

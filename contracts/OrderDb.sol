@@ -23,7 +23,7 @@ contract ContractProvider {
 }
 
 contract OrderDb {
-    address cmAddr;                 // ContractManager address
+    address cmAddr;                 // ContractProvider address
     bytes32[] public orderIDs;
 
     event OrderPlaced (
@@ -53,8 +53,8 @@ contract OrderDb {
     mapping(bytes32 => OrderInfo) public orderRegistry;
 
 
-    function OrderDb(address contractManagerAddr) {
-        cmAddr = contractManagerAddr;
+    function OrderDb(address contractProviderAddr) {
+        cmAddr = contractProviderAddr;
     }
 
     //@param container id, software id, dataset id and owner of the ordered computation

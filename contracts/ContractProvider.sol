@@ -4,7 +4,7 @@ pragma solidity ^0.4.17;
 * Contract Managing Contact to keep track of all the contracts of the system.
 */
 
-contract ContractManager {
+contract ContractProvider {
 	
 	address oracle;
 
@@ -15,7 +15,7 @@ contract ContractManager {
 	// Contract name to contact address on the network
 	mapping(bytes32 => address) public contracts;
 
-	function ContractManager() {
+	function ContractProvider() {
 		oracle = 0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE; 		// web3.eth.accounts[9]
 	}
 
