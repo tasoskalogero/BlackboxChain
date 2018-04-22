@@ -1,13 +1,18 @@
 pragma solidity ^0.4.17;
 
+/*
+* Manages computations orders by calling OrderDb contract.
+*/
+
+
 contract ContractProvider {
-    function contracts(bytes32 name) public returns (address addr) {}
+    function contracts(bytes32) public returns (address) {}
 }
 
 contract OrderDb {
-	function placeOrder(bytes32 cID, bytes32 dsID, bytes32 swID, address fromAddr) public payable returns(bool res) {}
-	function fulfillOrder(bytes32 orderID) public returns(bool res) {}
-	function cancelOrder(bytes32 orderID) public returns(bool res) {}
+	function placeOrder(bytes32, bytes32, bytes32, address) public payable returns(bool) {}
+	function fulfillOrder(bytes32) public returns(bool) {}
+	function cancelOrder(bytes32) public returns(bool) {}
 }
 
 contract OrderManager {
@@ -24,16 +29,16 @@ contract OrderManager {
 	event OrderFulfilled();
 
 	modifier onlyOracle {
-		require(msg.sender == oracle); 
+		require(msg.sender == oracle);
 			_;
 	}
 
 	function OrderManager(address contractProviderAddr) {
-		oracle = 0x5aeda56215b167893e80b4fe645ba6d5bab767de; 		// web3.eth.accounts[9]
+		oracle = 0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE; 		// web3.eth.accounts[9]
 		cpAddr = contractProviderAddr;
 	}
 
-	//called by any address
+    //@param container id, software id, dataset id and owner of the ordered computation
 	function placeOrder(bytes32 _containerID, bytes32 _datasetID, bytes32 _softwareID) payable returns(bool res) {
 		if(msg.value == 0) {
 			ZeroFunds();
@@ -41,13 +46,14 @@ contract OrderManager {
 		}
 
 		address orderdb = ContractProvider(cpAddr).contracts("orderdb");
-		// orderdb not available
+        // If OrderDb contract is not available return error
 		if(orderdb == 0x0) {
 			msg.sender.transfer(msg.value);
 			OrderDbNotAvailable();
 			return false;
 		}
 
+        // Call the OrderDb function
 		bool success = OrderDb(orderdb).placeOrder.value(msg.value)(_containerID,_datasetID, _softwareID, msg.sender);
 		if(!success) {
 			msg.sender.transfer(msg.value);
@@ -57,6 +63,10 @@ contract OrderManager {
 		return true;
 	}
 
+    /*
+    * Complete the order by calling the fulfillOrder function from OrderDb contract.
+    * @param order id
+    */
 	function fulfillOrder(bytes32 _orderID) onlyOracle returns (bool res) {
 		address orderdb = ContractProvider(cpAddr).contracts("orderdb");
         orderDB = orderdb;
@@ -74,8 +84,11 @@ contract OrderManager {
 		return true;
 	}
 
-
-	function cancelOrder(bytes32 _orderID) onlyOracle returns (bool res) {
+    /*
+    * Cancel an already placed order by calling the cancelOrder function from OrderDb contract.
+    * @param order id
+    */
+	function cancelOrder(bytes32 _orderID) onlyOracle public returns (bool res) {
 		address orderdb = ContractProvider(cpAddr).contracts("orderdb");
         orderDB = orderdb;
 
