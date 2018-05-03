@@ -71,7 +71,7 @@ export class DatasetComponent implements OnInit {
                 } else {
                     console.log('Transaction completed!');
                     this.setTxStatus('Transaction completed!');
-                    this.loggerService.add('Dataset added successfully - ' + result.tx);
+                    this.loggerService.add('Dataset added successfully.');
                     this.reset();
                 }
             })

@@ -19,7 +19,7 @@ clean_files() {
 	rm -f -- $RESULT_FILE
 }
 
-# $1 BigchainDB Transaction ID of dataset
+# $1 IPFS hash of dataset
 # $2 IPFS hash of software
 # $3 user's public key
 dsIPFSHash=$1
@@ -48,7 +48,7 @@ if [ "$?" = "1" ]; then
 	error_exit 600
 fi
 
-plaintext_data=$(./decrypt.sh -f $CIPHERTEXT_FILENAME -p $CONTAINER_PRIVATE_KEY)
+plaintext_data=$(sh decrypt.sh -f $CIPHERTEXT_FILENAME -p $CONTAINER_PRIVATE_KEY)
 if [ "$?" = "1" ]; then
 	error_exit 610
 fi

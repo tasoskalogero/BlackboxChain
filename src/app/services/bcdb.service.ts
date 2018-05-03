@@ -3,10 +3,14 @@ import * as bcdb_driver from 'bigchaindb-driver';
 
 @Injectable()
 export class BcdbService {
-    apiUrl = 'http://localhost:59984/api/v1/';
-
+    apiUrl = 'https://test.bigchaindb.com/api/v1/';
+    conn;
     //TODO make connection in constructor once?
     constructor() {
+        this.conn = new bcdb_driver.Connection(this.apiUrl, {
+            app_id: 'c2c9c771',
+            app_key: '28b8fde912535489c425c2e266030b0e'
+        });
     }
 
     async createNewDataset(ipfsHash, dsName, dsDescr, cost) {
@@ -26,9 +30,10 @@ export class BcdbService {
         );
         const txSigned = bcdb_driver.Transaction.signTransaction(tx, owner.privateKey);
 
-        const conn = new bcdb_driver.Connection(this.apiUrl);
-        await conn.postTransaction(txSigned);
-        let retrievedTx = await conn.pollStatusAndFetchTransaction(txSigned.id);
+        // const conn = new bcdb_driver.Connection(this.apiUrl);
+
+        let retrievedTx = await this.conn.postTransactionSync(txSigned);
+        // let retrievedTx = await conn.pollStatusAndFetchTransaction(txSigned.id);
         console.log('[BCDB Dataset] - Transaction', retrievedTx.id, 'successfully posted.');
         return retrievedTx.id;
     }
@@ -55,14 +60,10 @@ export class BcdbService {
             ],
             owner.publicKey
         );
-        const txSigned = bcdb_driver.Transaction.signTransaction(
-            tx,
-            owner.privateKey
-        );
 
-        const conn = new bcdb_driver.Connection(this.apiUrl);
-        await conn.postTransaction(txSigned);
-        let retrievedTx = await conn.pollStatusAndFetchTransaction(txSigned.id);
+        let txSigned = await bcdb_driver.Transaction.signTransaction(tx, owner.privateKey);
+
+        let retrievedTx = await this.conn.postTransactionSync(txSigned);
         console.log('[BCDB Software] - Transaction', retrievedTx.id, 'successfully posted.');
         return retrievedTx.id;
     }
@@ -93,16 +94,13 @@ export class BcdbService {
             owner.privateKey
         );
 
-        const conn = new bcdb_driver.Connection(this.apiUrl);
-        await conn.postTransaction(txSigned);
-        let retrievedTx = await conn.pollStatusAndFetchTransaction(txSigned.id);
+        let retrievedTx = await this.conn.postTransactionSync(txSigned);
         console.log("[BCDB Container] - Transaction", retrievedTx.id, "successfully posted.");
         return retrievedTx.id;
     }
 
     async queryDB(bcdbTxId) {
-        const conn = new bcdb_driver.Connection(this.apiUrl);
-        let assets = await conn.searchAssets(bcdbTxId);
+        let assets = await this.conn.searchAssets(bcdbTxId);
         if(assets.length === 0) {
             return "BighcainDB TxId invalid";
         }

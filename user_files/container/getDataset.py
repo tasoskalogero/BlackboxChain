@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import argparse
 import base64
-from bigchaindb_driver import BigchainDB
 import ipfsapi
 import sys
 

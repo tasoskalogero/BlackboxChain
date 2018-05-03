@@ -101,7 +101,7 @@ async function watchOrderEvents(web3, oracleAccount) {
                 if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
                     console.log("-------------- ORDER VALID --------------");
                     // CREATE EXEC INSTANCE
-                    let execResult = await createExecInstance(containerDockerID, softwareMatch[1], datasetMatch[1], userPubKey);
+                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKey);
 
                     if (execResult[0] === "FAILURE") {
 
@@ -132,7 +132,7 @@ async function watchOrderEvents(web3, oracleAccount) {
                             console.log("Funds returned");
                         } else {
                             result = result.replace(/\//g, ""); // remove '/' from ipfs address result
-                            console.log("Final result received", result);
+                            console.log("Final result received",result);
 
                             let successPayment = await execPayment(web3, orderID, oracleAccount);
 
@@ -170,7 +170,8 @@ async function watchOrderEvents(web3, oracleAccount) {
 }
 
 
-async function createExecInstance(containerID, softwareIPFSHash, datasetIpfsHash, userPubKey) {
+async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKey) {
+    console.log("[CreateExecInstance] ", containerID, datasetIpfsHash, softwareIPFSHash);
 
     let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKey];
     let bodyCmd = JSON.stringify({
@@ -269,7 +270,6 @@ async function execPayment(web3, orderID, oracleAccount) {
     let deployedOrderManager = await OrderManager.deployed();
 
     try {
-        console.log(orderID);
         let success = await deployedOrderManager.fulfillOrder(orderID, {from: oracleAccount, gas: 3000000});
         console.log("PAYMENT DONE");
         return 0;

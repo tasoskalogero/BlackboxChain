@@ -56,7 +56,7 @@ export class SoftwareComponent implements OnInit {
                 } else {
                     console.log(result.tx);
                     this.setTxStatus('Transaction completed!');
-                    this.loggerService.add('Software information added successfully - ' + result.tx);
+                    this.loggerService.add('Software added successfully');
                     this.reset();
                 }
             })

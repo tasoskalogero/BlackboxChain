@@ -2,8 +2,13 @@ let md5 = require('md5');
 const path = require("path");
 const driver = require("bigchaindb-driver");
 
-const API_PATH = "http://localhost:59984/api/v1/";
-const conn = new driver.Connection(API_PATH);
+// const API_PATH = "http://localhost:59984/api/v1/";
+// const conn = new driver.Connection(API_PATH);
+const API_PATH = 'https://test.bigchaindb.com/api/v1/';
+let conn = new driver.Connection(API_PATH, {
+    app_id: 'c2c9c771',
+    app_key: '28b8fde912535489c425c2e266030b0e'
+});
 
 const SoftwareRegistryJSON = require(path.join(__dirname,"../../../build/contracts/SoftwareRegistry.json"));
 let contract_manager = require('./contract_manager');

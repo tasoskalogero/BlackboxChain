@@ -1,3 +1,5 @@
+#!/bin/bash
+
 private_key=""  
 encr_file_path=""
 output_filename=""
