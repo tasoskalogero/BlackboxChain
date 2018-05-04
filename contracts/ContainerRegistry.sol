@@ -14,18 +14,33 @@ contract ContainerRegistry {
         uint cost;
         address owner;
     }
+
+    modifier onlyIfAllowed () {
+        require(accessAllowed[msg.sender] == true);
+        _;
+    }
+
     //containerId => ContainerInfo
     mapping(bytes32 => ContainerInfo) containerRegistry;
+    mapping(address => bool) accessAllowed;
+
+
+    function ContainerRegistry() public {
+        accessAllowed[msg.sender] = true;
+    }
+
+    function allowAccess(address _address) onlyIfAllowed public {
+        accessAllowed[_address] = true;
+    }
 
     // @param BigchainDb Transaction ID, checksum, cost of using the container
-    function addNewContainer(string _bcdbTxID, string _checksum, uint _cost) public returns(bool success) {
-        bytes32 containerID = keccak256(_bcdbTxID, _checksum, now);
+    function addContainer(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed public returns(bool success) {
+        containerIdentifiers.push(_id);
 
-        containerIdentifiers.push(containerID);
-        containerRegistry[containerID].bcdbTxID = _bcdbTxID;
-        containerRegistry[containerID].checksum = _checksum;
-        containerRegistry[containerID].cost = _cost;
-        containerRegistry[containerID].owner = msg.sender;
+        containerRegistry[_id].bcdbTxID = _bcdbTxID;
+        containerRegistry[_id].checksum = _checksum;
+        containerRegistry[_id].cost = _cost;
+        containerRegistry[_id].owner = _owner;
         return true;
     }
 

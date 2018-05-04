@@ -5,6 +5,7 @@ pragma solidity ^0.4.19;
 */
 
 contract SoftwareRegistry {
+
     bytes32[] softwareIdentifiers;
 
     struct SoftwareInfo {
@@ -13,20 +14,38 @@ contract SoftwareRegistry {
         uint cost;
         address owner;
     }
+
+    modifier onlyIfAllowed () {
+        require(accessAllowed[msg.sender] == true);
+        _;
+    }
+
     //softwareId => SoftwareInfo
     mapping(bytes32 => SoftwareInfo) softwareRegistry;
 
-    // @param BigchainDb Transaction ID, checksum, cost of using the container
-    function addNewSoftware(string _bcdbTxID, string _checksum, uint _cost) public returns(bool success) {
-        bytes32 swID = keccak256(_bcdbTxID, _checksum, now);
+    //access is allowed to creator and RegistryManager
+    mapping(address => bool) accessAllowed;
 
-        softwareIdentifiers.push(swID);
-        softwareRegistry[swID].bcdbTxID = _bcdbTxID;
-        softwareRegistry[swID].checksum = _checksum;
-        softwareRegistry[swID].cost = _cost;
-        softwareRegistry[swID].owner = msg.sender;
+    function SoftwareRegistry() public {
+        accessAllowed[msg.sender] = true;
+    }
+
+
+    function allowAccess(address _address) onlyIfAllowed public {
+        accessAllowed[_address] = true;
+    }
+
+    // @param BigchainDb Transaction ID, checksum, cost of using the container
+    function addSoftware(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed  public returns(bool success) {
+        softwareIdentifiers.push(_id);
+
+        softwareRegistry[_id].bcdbTxID = _bcdbTxID;
+        softwareRegistry[_id].checksum = _checksum;
+        softwareRegistry[_id].cost = _cost;
+        softwareRegistry[_id].owner = _owner;
         return true;
     }
+
 
     // @return Array with software ids
     function getSoftwareIDs() public view returns(bytes32[]) {

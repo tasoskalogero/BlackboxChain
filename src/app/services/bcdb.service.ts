@@ -13,7 +13,7 @@ export class BcdbService {
         });
     }
 
-    async createNewDataset(ipfsHash, dsName, dsDescr, cost) {
+    async insertDataset(ipfsHash, dsName, dsDescr, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
 
         // let encodedDataset = btoa(datasetContent);
@@ -38,7 +38,7 @@ export class BcdbService {
         return retrievedTx.id;
     }
 
-    async createNewSoftware(filename, ipfsHash, paramType, description, cost) {
+    async insertSoftware(filename, ipfsHash, paramType, description, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
         console.log('[BCDB] Posting software: ' + filename + ' ' + ipfsHash + ' ' + paramType + ' ' + description + ' ' + cost);
         let asset = {
@@ -68,7 +68,7 @@ export class BcdbService {
         return retrievedTx.id;
     }
 
-    async createNewContainer(containerDockerID, ipfsHash, publicKey, cost) {
+    async insertContainer(containerDockerID, ipfsHash, publicKey, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
         console.log("[BCDB] Posting container: " + containerDockerID + " " + publicKey + " " + cost);
         let asset = {
@@ -99,7 +99,7 @@ export class BcdbService {
         return retrievedTx.id;
     }
 
-    async queryDB(bcdbTxId) {
+    async query(bcdbTxId) {
         let assets = await this.conn.searchAssets(bcdbTxId);
         if(assets.length === 0) {
             return "BighcainDB TxId invalid";

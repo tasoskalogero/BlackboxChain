@@ -1,5 +1,5 @@
-var ContractProvider = artifacts.require("./ContractProvider.sol");
+var ContainerRegistry = artifacts.require("./ContainerRegistry.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(ContractProvider);
+  deployer.deploy(ContainerRegistry);
 };

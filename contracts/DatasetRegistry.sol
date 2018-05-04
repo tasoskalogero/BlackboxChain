@@ -15,18 +15,35 @@ contract DatasetRegistry {
         address owner;
     }
 
+    modifier onlyIfAllowed() {
+        require(accessAllowed[msg.sender] == true);
+        _;
+    }
+
     //datasetId => DatasetInfo
     mapping(bytes32 => DatasetInfo) datasetRegistry;
 
-    // @param BigchainDb Transaction ID, checksum, cost of using the container
-    function addNewDataset(string _bcdbTxID, string _checksum, uint _cost) public returns (bool success) {
-        bytes32 datasetID = keccak256(_bcdbTxID, _checksum, now);
+    mapping(address => bool) accessAllowed;
 
-        datasetIdentifiers.push(datasetID);
-        datasetRegistry[datasetID].bcdbTxID = _bcdbTxID;
-        datasetRegistry[datasetID].checksum = _checksum;
-        datasetRegistry[datasetID].cost = _cost;
-        datasetRegistry[datasetID].owner = msg.sender;
+
+    function DatasetRegistry() public {
+        accessAllowed[msg.sender] = true;
+    }
+
+
+    function allowAccess(address _address) onlyIfAllowed public {
+        accessAllowed[_address] = true;
+    }
+
+
+    // @param BigchainDb Transaction ID, checksum, cost of using the container
+    function addDataset(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed public returns (bool success) {
+        datasetIdentifiers.push(_id);
+
+        datasetRegistry[_id].bcdbTxID = _bcdbTxID;
+        datasetRegistry[_id].checksum = _checksum;
+        datasetRegistry[_id].cost = _cost;
+        datasetRegistry[_id].owner = _owner;
         return true;
     }
 

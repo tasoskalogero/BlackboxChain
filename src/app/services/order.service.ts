@@ -81,7 +81,7 @@ export class OrderService {
 
             let bcdbTxID = dsInfo [0];
 
-            let bcdbDatasetAsset = await this.bcdbService.queryDB(bcdbTxID);
+            let bcdbDatasetAsset = await this.bcdbService.query(bcdbTxID);
 
             return bcdbDatasetAsset .cost;
         } catch (e) {
@@ -100,7 +100,7 @@ export class OrderService {
 
           let bcdbTxID = swInfo[0];
 
-          let bcdbSoftwareAsset = await this.bcdbService.queryDB(bcdbTxID);
+          let bcdbSoftwareAsset = await this.bcdbService.query(bcdbTxID);
 
           return bcdbSoftwareAsset.cost;
       } catch (e) {
@@ -118,7 +118,7 @@ export class OrderService {
 
             let bcdbTxID = containerInfo[0];
 
-            let bcdbContainerAsset = await this.bcdbService.queryDB(bcdbTxID);
+            let bcdbContainerAsset = await this.bcdbService.query(bcdbTxID);
 
             return bcdbContainerAsset.cost;
         } catch (e) {

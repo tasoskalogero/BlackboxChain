@@ -68,7 +68,7 @@ export class ContainerComponent implements OnInit {
         } else {
           console.log("Transaction completed!");
           this.setTxStatus("Transaction completed!");
-          this.loggerService.add("Container added successfully - " + result.tx);
+          this.loggerService.add("Container added successfully");
           this.reset();
         }
       })
