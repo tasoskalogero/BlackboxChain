@@ -5,7 +5,6 @@ import * as bcdb_driver from 'bigchaindb-driver';
 export class BcdbService {
     apiUrl = 'https://test.bigchaindb.com/api/v1/';
     conn;
-    //TODO make connection in constructor once?
     constructor() {
         this.conn = new bcdb_driver.Connection(this.apiUrl, {
             app_id: 'c2c9c771',

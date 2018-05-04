@@ -10,7 +10,7 @@ import {DatasetLayoutComponent} from '../dataset-layout/dataset-layout.component
 import {Web3Service} from '../../../util/web3.service';
 import {OrderService} from '../../../services/order.service';
 import Web3 from 'web3';
-import result_registry from '../../../../../build/contracts/ResultRegistry.json';
+import result_manager from '../../../../../build/contracts/ResultManager.json';
 
 declare const Buffer;
 
@@ -40,7 +40,7 @@ export class ComputationLayoutComponent implements OnInit {
     dataset: Dataset;
     currentAccount: string;
     prevAccount: string;
-    ResultRegistry: any;
+    ResultManager: any;
     private txStatus: string;
 
     constructor(
@@ -83,9 +83,9 @@ export class ComputationLayoutComponent implements OnInit {
         });
 
         this.web3Service
-            .artifactsToContract(result_registry)
-            .then(resultRegistry => {
-                this.ResultRegistry = resultRegistry;
+            .artifactsToContract(result_manager)
+            .then(resultManager => {
+                this.ResultManager = resultManager;
             });
         this.watchForError().then();
         this.watchForResult().then();
@@ -97,9 +97,9 @@ export class ComputationLayoutComponent implements OnInit {
 
     async watchForError() {
         let latestBlock = await this.web3.eth.getBlockNumber();
-        let deployedResultRegistry = await this.ResultRegistry.deployed();
+        let deployedResultManager = await this.ResultManager.deployed();
         console.log('Watching for errors...');
-        deployedResultRegistry.ResultError({fromBlock: latestBlock}, async (error, event) => {
+        deployedResultManager.ResultError({fromBlock: latestBlock}, async (error, event) => {
             if (error) {
                 console.log(error);
             } else {
@@ -116,9 +116,9 @@ export class ComputationLayoutComponent implements OnInit {
 
     async watchForResult() {
         let latestBlock = await this.web3.eth.getBlockNumber();
-        let deployedResultRegistry = await this.ResultRegistry.deployed();
+        let deployedResultManager = await this.ResultManager.deployed();
         console.log('Watching for results...');
-        deployedResultRegistry.ResultAdded({fromBlock: latestBlock}, async (error, event) => {
+        deployedResultManager.ResultAdded({fromBlock: latestBlock}, async (error, event) => {
             if (error) {
                 console.log(error);
             } else {
@@ -145,7 +145,7 @@ export class ComputationLayoutComponent implements OnInit {
         console.log('===========================');
 
         this.setTxStatus('Placing order...');
-        let success = await this.orderService.placeNewOrder(
+        let success = await this.orderService.addComputation(
             this.container,
             this.dataset,
             this.software)

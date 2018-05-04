@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import {Web3Service} from '../util/web3.service';
-import order_manager from "../../../build/contracts/OrderManager.json";
+import computation_manager from "../../../build/contracts/ComputationManager.json";
 import software_registry from "../../../build/contracts/SoftwareRegistry.json";
 import dataset_registry from "../../../build/contracts/DatasetRegistry.json";
 import container_registry from '../../../build/contracts/ContainerRegistry.json';
@@ -11,7 +11,7 @@ import {BcdbService} from './bcdb.service';
 export class OrderService {
     private currentAccount: string;
     private web3: Web3;
-    private OrderManager: any;
+    private ComputationManager: any;
     private SoftwareRegistry: any;
     private DatasetRegistry: any;
     private ContainerRegistry: any;
@@ -26,9 +26,9 @@ export class OrderService {
           });
       });
       this.web3Service
-          .artifactsToContract(order_manager)
-          .then(OrderManager => {
-              this.OrderManager = OrderManager;
+          .artifactsToContract(computation_manager)
+          .then(ComputationManager => {
+              this.ComputationManager = ComputationManager;
           });
 
       this.web3Service
@@ -51,7 +51,7 @@ export class OrderService {
   }
 
 
-  async placeNewOrder(container, dataset, software) {
+  async addComputation(container, dataset, software) {
       console.log("=======",this.currentAccount);
       let swCostWei = await this.getSoftwareCost(software.ID);
 
@@ -62,12 +62,12 @@ export class OrderService {
       let totalWei = +swCostWei + +dsCostWei + +containerCostWei;
       console.log(totalWei);
 
-      let deployedOrder = await this.OrderManager.deployed();
+      let deployedComputationManager = await this.ComputationManager.deployed();
       try {
-          return await deployedOrder.placeOrder(
-              container.ID,
+          return await deployedComputationManager.addComputationInfo(
               dataset.ID,
               software.ID,
+              container.ID,
               {from: this.currentAccount, value: totalWei});
       } catch (e) {
           console.log(e);
