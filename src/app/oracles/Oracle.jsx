@@ -3,11 +3,14 @@ const http = require("http");
 const path = require("path");
 const bs58 = require('bs58');
 const contract = require("truffle-contract");
+const ipfsAPI = require('ipfs-api');
+let ipfs = ipfsAPI('/ip4/127.0.0.1/tcp/5001');
 
-const ComputationManagerJSON = require(path.join(__dirname,"../../../build/contracts/ComputationManager.json"));
-const ComputationRegistryJSON = require(path.join(__dirname,"../../../build/contracts/ComputationRegistry.json"));
 
-const ResultManagerJSON = require(path.join(__dirname,"../../../build/contracts/ResultManager.json"));
+const ComputationManagerJSON = require(path.join(__dirname, "../../../build/contracts/ComputationManager.json"));
+const ComputationRegistryJSON = require(path.join(__dirname, "../../../build/contracts/ComputationRegistry.json"));
+
+const ResultManagerJSON = require(path.join(__dirname, "../../../build/contracts/ResultManager.json"));
 
 const errors = require("../helpers/error_codes.js");
 
@@ -59,7 +62,7 @@ async function watchComputationEvents(web3, oracleAccount) {
     let latestBlock = await web3.eth.getBlockNumber();
 
     let ComputationRegistry = initContract(ComputationRegistryJSON);
-    let deployedComputationRegistry = await ComputationRegistry .deployed();
+    let deployedComputationRegistry = await ComputationRegistry.deployed();
 
     let ComputationManager = initContract(ComputationManagerJSON);
     let deployedComputationManager = await ComputationManager.deployed();
@@ -70,22 +73,26 @@ async function watchComputationEvents(web3, oracleAccount) {
         } else {
             if (event.blockNumber !== latestBlock) {
                 //TODO get read ipfs (maybe)
-                let userPubKey = '-----BEGIN PUBLIC KEY-----\n' +
-                    'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEJQ3O9G+DjeR9/ylAh7lC131o\n' +
-                    'JxCtfQkKxSk9IOgqKvZN8/mUEgFTOn8jFokThmP9QJvHNKN0ZMbtxnucMIFN38Y0\n' +
-                    'WVO13aybYpSrIETytZetKKMgIF0s6Aw5a0jnu3V/GcjAap2XolRP8TR+mRhd6vII\n' +
-                    'xGdT+PiEBfYubyKZHwIDAQAB\n' +
-                    '-----END PUBLIC KEY-----\n';
+                // let userPubKey = '-----BEGIN PUBLIC KEY-----\n' +
+                //     'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEJQ3O9G+DjeR9/ylAh7lC131o\n' +
+                //     'JxCtfQkKxSk9IOgqKvZN8/mUEgFTOn8jFokThmP9QJvHNKN0ZMbtxnucMIFN38Y0\n' +
+                //     'WVO13aybYpSrIETytZetKKMgIF0s6Aw5a0jnu3V/GcjAap2XolRP8TR+mRhd6vII\n' +
+                //     'xGdT+PiEBfYubyKZHwIDAQAB\n' +
+                //     '-----END PUBLIC KEY-----\n';
                 console.log("EVENT Received: ", event.args);
-                console.log(userPubKey);
+                // console.log(userPubKey);
+
 
                 let computationID = event.args.computationID;
+                let userPubKeyIpfs = event.args.userPubKeyIpfsHash;
                 let softwareID = event.args.softwareID;
                 let datasetID = event.args.datasetID;
                 let containerID = event.args.containerID;
-
                 let computationInfo = await deployedComputationRegistry.computations.call(computationID, {from: oracleAccount});
                 let amountInComputation = computationInfo[5].toNumber();
+
+                const convert = (short) => bs58.encode(Buffer.from('1220' + short.slice(2), 'hex'));
+                let userPubKeyIpfsHash = convert(userPubKeyIpfs);
 
                 // CHECK IF AMOUNT SENT IN CONTRACT IS EQUAL TO THE AMOUNT OF THE SELECTED SOFTWARE, DATASET, CONTAINER
                 let enoughFunds = await verifyFunds(softwareID, datasetID, containerID, amountInComputation, oracleAccount);
@@ -94,12 +101,19 @@ async function watchComputationEvents(web3, oracleAccount) {
                 let softwareMatch = await checkSoftware(web3, softwareID, oracleAccount);
 
                 let containerDockerID = await getDockerContainerID(web3, containerID, oracleAccount);
-                let containerAlive  = await getContainerStatus(containerDockerID);
+                let containerAlive = await getContainerStatus(containerDockerID);
 
                 if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
                     console.log("-------------- COMPUTATION VALID --------------");
                     // CREATE EXEC INSTANCE
-                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKey);
+                    ipfs.files.cat(userPubKeyIpfsHash, function (err, file) {
+                        if (err) {
+                            throw err
+                        }
+
+                        console.log(file.toString('utf8'))
+                    });
+                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyIpfsHash);
 
                     if (execResult[0] === "FAILURE") {
 
@@ -130,27 +144,27 @@ async function watchComputationEvents(web3, oracleAccount) {
                             console.log("Funds returned");
                         } else {
                             result = result.replace(/\//g, ""); // remove '/' from ipfs address result
-                            console.log("Final result received",result);
+                            console.log("Final result received", result);
 
                             let successPayment = await execPayment(web3, computationID, oracleAccount);
 
                             // computation succeed - funds transferred to providers
-                            if(successPayment === 0) {
+                            if (successPayment === 0) {
 
                                 let resultOwner = computationInfo[4];
 
                                 let successStore = await storeResult(web3, resultOwner, result, oracleAccount);
 
-                                if(successStore === 1) {
+                                if (successStore === 1) {
                                     await handleError(web3, "Failed to store result.", oracleAccount);
                                     await returnFunds(web3, computationID, oracleAccount);
-                                    console.log("Failed to store the result for the computation ",computationID,". Funds returned.");
+                                    console.log("Failed to store the result for the computation ", computationID, ". Funds returned.");
                                 }
-                            // Computation failed to fulfill - funds returned to buyer
+                                // Computation failed to fulfill - funds returned to buyer
                             } else {
                                 await handleError(web3, "Failed to fulfill computation.", oracleAccount);
                                 await returnFunds(web3, computationID, oracleAccount);
-                                console.log("Failed to fulfill the computation ",computationID,". Funds returned.");
+                                console.log("Failed to fulfill the computation ", computationID, ". Funds returned.");
                             }
                         }
                     }
@@ -160,7 +174,7 @@ async function watchComputationEvents(web3, oracleAccount) {
                     await handleError(web3, error_msg, oracleAccount);
 
                     await returnFunds(web3, computationID, oracleAccount);
-                    console.log("Computation",computationID," cannot be placed. Funds returned.");
+                    console.log("Computation", computationID, " cannot be placed. Funds returned.");
                 }
             }
         }
@@ -168,10 +182,10 @@ async function watchComputationEvents(web3, oracleAccount) {
 }
 
 
-async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKey) {
+async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyIpfsHash) {
     console.log("[CreateExecInstance] ", containerID, datasetIpfsHash, softwareIPFSHash);
 
-    let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKey];
+    let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKeyIpfsHash];
     let bodyCmd = JSON.stringify({
         Cmd: commands,
         AttachStdout: true
@@ -247,7 +261,7 @@ async function runExec(execID) {
 
             res.on("end", () => {
                 console.log("RESULT:", output);
-                if(status === 200)
+                if (status === 200)
                     resolve(output);
                 else
                     resolve(status);
@@ -268,7 +282,10 @@ async function execPayment(web3, computationID, oracleAccount) {
     let deployedComputationManager = await ComputationManager.deployed();
 
     try {
-        let success = await deployedComputationManager.computationSucceed(computationID, {from: oracleAccount, gas: 3000000});
+        let success = await deployedComputationManager.computationSucceed(computationID, {
+            from: oracleAccount,
+            gas: 3000000
+        });
         console.log("PAYMENT DONE");
         return 0;
     } catch (e) {
@@ -314,7 +331,11 @@ async function handleError(web3, msg, oracleAccount) {
 }
 
 async function verifyFunds(softwareID, datasetID, containerID, fundsInComputation, oracleAccount) {
-
+    console.log(softwareID);
+    console.log(datasetID);
+    console.log(containerID);
+    console.log(fundsInComputation);
+    console.log(oracleAccount);
     let sw = await getSoftwareByID(web3, softwareID, oracleAccount);
     let swCost = sw.cost;
 

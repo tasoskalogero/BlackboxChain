@@ -13,7 +13,8 @@ contract ComputationManager {
         bytes32 indexed computationID,
         bytes32 indexed containerID,
         bytes32 indexed datasetID,
-        bytes32 softwareID
+        bytes32 softwareID,
+        bytes32 userPubKeyIpfsHash
     );
 
     ComputationRegistry public computationRegistry;
@@ -33,11 +34,11 @@ contract ComputationManager {
         containerRegistry = ContainerRegistry(_containerRegistry);
     }
 
-    function addComputationInfo(bytes32 _datasetID, bytes32 _softwareID, bytes32 _containerID) public payable returns(bool success) {
+    function addComputationInfo(bytes32 _uPubKeyIpfsHash, bytes32 _datasetID, bytes32 _softwareID, bytes32 _containerID) public payable returns(bool success) {
         bytes32 id = keccak256(_datasetID, _softwareID, _containerID, now);
-        bool stored = computationRegistry.addComputation(id, _datasetID, _softwareID, _containerID, msg.value, msg.sender);
+        bool stored = computationRegistry.addComputation(id, _uPubKeyIpfsHash, _datasetID, _softwareID, _containerID, msg.value, msg.sender);
         if(stored) {
-            ComputationAdded(id, _containerID, _datasetID, _softwareID);
+            ComputationAdded(id, _containerID, _datasetID, _softwareID, _uPubKeyIpfsHash);
             return true;
         }
         return false;

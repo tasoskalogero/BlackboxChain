@@ -21,10 +21,10 @@ clean_files() {
 
 # $1 IPFS hash of dataset
 # $2 IPFS hash of software
-# $3 user's public key
+# $3 user's public key ipfs hash
 dsIPFSHash=$1
 swIPFSHash=$2
-user_pub_key="$3"
+userPubKeyIpfsHash="$3"
 
 # echo $dsIPFSHash
 # echo $swIPFSHash
@@ -41,7 +41,8 @@ CONTAINER_PRIVATE_KEY="keys/private.pem"
 USER_PUB_KEY="user.pem"
 RESULT_FILE="ipfs_encrypted.bin"
 
-echo "$user_pub_key" > $USER_PUB_KEY
+# echo "$user_pub_key" > $USER_PUB_KEY
+ipfs cat "$userPubKeyIpfsHash" > $USER_PUB_KEY
 
 python3 $FETCH_DATASET_FILE $dsIPFSHash $CIPHERTEXT_FILENAME
 if [ "$?" = "1" ]; then

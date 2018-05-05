@@ -6,6 +6,7 @@ import dataset_registry from "../../../build/contracts/DatasetRegistry.json";
 import container_registry from '../../../build/contracts/ContainerRegistry.json';
 import Web3 from 'web3';
 import {BcdbService} from './bcdb.service';
+import * as bs58 from 'bs58';
 
 @Injectable()
 export class OrderService {
@@ -51,8 +52,9 @@ export class OrderService {
   }
 
 
-  async addComputation(container, dataset, software) {
-      console.log("=======",this.currentAccount);
+  async addComputation(userPubKeyIpfsHash, container, dataset, software) {
+
+
       let swCostWei = await this.getSoftwareCost(software.ID);
 
       let dsCostWei = await this.getDatasetCost(dataset.ID);
@@ -60,11 +62,13 @@ export class OrderService {
       let containerCostWei = await this.getContainerCost(container.ID);
 
       let totalWei = +swCostWei + +dsCostWei + +containerCostWei;
-      console.log(totalWei);
+
+      let uPubKeyipfsHash = '0x' + bs58.decode(userPubKeyIpfsHash).slice(2).toString('hex');            //convert ipfs hash to store in smart contract as bytes32
 
       let deployedComputationManager = await this.ComputationManager.deployed();
       try {
           return await deployedComputationManager.addComputationInfo(
+              uPubKeyipfsHash,
               dataset.ID,
               software.ID,
               container.ID,

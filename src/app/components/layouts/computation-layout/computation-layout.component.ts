@@ -11,8 +11,10 @@ import {Web3Service} from '../../../util/web3.service';
 import {OrderService} from '../../../services/order.service';
 import Web3 from 'web3';
 import result_manager from '../../../../../build/contracts/ResultManager.json';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+// import * as ipfsAPI from 'ipfs-api';
 
-declare const Buffer;
+// declare const Buffer;
 
 @Component({
     selector: 'app-computation-layout',
@@ -27,23 +29,29 @@ export class ComputationLayoutComponent implements OnInit {
     @ViewChild(ContainerLayoutComponent)
     private containerDisplayComponent: ContainerLayoutComponent;
 
-    @ViewChild(PubKeyUploadLayoutComponent)
-    private pubKeyUploadDisplayComponent: PubKeyUploadLayoutComponent;
+    // @ViewChild(PubKeyUploadLayoutComponent)
+    // private pubKeyUploadDisplayComponent: PubKeyUploadLayoutComponent;
 
     @ViewChild(DatasetLayoutComponent)
     private datasetDisplayComponent: DatasetLayoutComponent;
 
+    pubKeyIpfsHash: string;
+    pubKeyForm: FormGroup;
     web3: Web3;
     container: Container;
     software: Software;
-    uploadedUserPubKeyFile: File;
+    pubKeyIpfs: string;
+
+    // uploadedUserPubKeyFile: File;
     dataset: Dataset;
     currentAccount: string;
     prevAccount: string;
     ResultManager: any;
+    // ipfsApi: any;
     private txStatus: string;
 
     constructor(
+        private fb: FormBuilder,
         private web3Service: Web3Service,
         private communicationService: CommunicationService,
         private dockerCommunicationService: DockerCommunicationService,
@@ -62,9 +70,9 @@ export class ComputationLayoutComponent implements OnInit {
             this.dataset = ds;
         });
 
-        communicationService.uploadedUserPubKey$.subscribe(file => {
-            this.uploadedUserPubKeyFile = file;
-        });
+        // communicationService.uploadedUserPubKey$.subscribe(file => {
+        //     this.uploadedUserPubKeyFile = file;
+        // });
 
         this.web3 = this.web3Service.getWeb3();
 
@@ -89,10 +97,18 @@ export class ComputationLayoutComponent implements OnInit {
             });
         this.watchForError().then();
         this.watchForResult().then();
+
+        // this.ipfsApi = ipfsAPI('localhost', '5001',{protocol: 'https'});
     }
 
+    private createForm() {
+        this.pubKeyForm = this.fb.group({
+            pubKeyIpfs: ['', Validators.required],
+        });
+    }
 
     ngOnInit() {
+        this.createForm();
     }
 
     async watchForError() {
@@ -137,15 +153,23 @@ export class ComputationLayoutComponent implements OnInit {
     }
 
     async onSubmit() {
+        let formModel = this.pubKeyForm.value;
         console.log('===== Compute clicked =====');
-        console.log('User Public key file received: ', this.uploadedUserPubKeyFile);
+        //TODO remove
+        // console.log('User Public key file received: ', this.uploadedUserPubKeyFile);
+
+        console.log('User Public key file IPFS Hash: ',formModel['pubKeyIpfs']);
         console.log('Selected dataset received: ', this.dataset);
         console.log('Selected container received: ', this.container);
         console.log('Selected software received: ', this.software);
         console.log('===========================');
 
+        // let userPubKey = await this.readFile(this.uploadedUserPubKeyFile);
+        // console.log(userPubKey);
+
         this.setTxStatus('Placing order...');
         let success = await this.orderService.addComputation(
+            formModel['pubKeyIpfs'],
             this.container,
             this.dataset,
             this.software)
@@ -154,21 +178,37 @@ export class ComputationLayoutComponent implements OnInit {
                     this.setTxStatus('Transaction failed!');
                     this.loggerService.add('Computation failed.');
                 } else {
-                    console.log(result.tx);
+                    console.log(result);
                     this.setTxStatus('Transaction sent! Waiting for result...');
                 }
             });
     }
 
-    readFile(file: File) {
-        let read = new FileReader();
-        read.readAsBinaryString(file);
-        return new Promise(resolve => {
-            read.onloadend = function () {
-                resolve(read.result);
-            };
-        });
-    }
+    //Original
+    // readFile(file: File) {
+    //     let read = new FileReader();
+    //     read.readAsBinaryString(file);
+    //     return new Promise(resolve => {
+    //         read.onloadend = function () {
+    //             resolve(read.result);
+    //         };
+    //     });
+    // }
+
+    // saveToIpfs(pubKeyIpfs) {
+    //     let ipfsId;
+    //     const buffer = Buffer.from(pubKeyIpfs);
+    //     this.ipfsApi.files.add(buffer, (err, files) => {
+    //         console.log(files);
+    //     });
+        // }).then((response) => {
+        //         console.log(response);
+        //         ipfsId = response[0].hash;
+        //         console.log("!!!!!!!!!!!!!!!!!!!!! ", ipfsId);
+        //     }).catch((err) => {
+        //     console.error(err)
+        // })
+    // };
 
     cancel() {
         if (this.softwareDisplayComponent) {
@@ -186,10 +226,13 @@ export class ComputationLayoutComponent implements OnInit {
             this.dataset = null;
         }
 
-        if (this.pubKeyUploadDisplayComponent) {
-            this.pubKeyUploadDisplayComponent.removeFile();
-            this.uploadedUserPubKeyFile = null;
-        }
+        this.pubKeyForm.reset();
+        //TODO remove
+        // if (this.pubKeyUploadDisplayComponent) {
+        //     this.pubKeyUploadDisplayComponent.removeFile();
+        //     this.uploadedUserPubKeyFile = null;
+        // }
+
         this.setTxStatus('');
     }
 

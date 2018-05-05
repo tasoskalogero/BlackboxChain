@@ -16,9 +16,9 @@ exports.getSoftwareByID = async function(web3, softwareID, oracleAccount) {
     let SoftwareRegistry = initContract(web3, SoftwareRegistryJSON);
     let deployedSoftwareRegistry = await SoftwareRegistry.deployed();
     try {
-        let softwareInfo = await deployedSoftwareRegistry .getSoftwareByID.call(softwareID, {from: oracleAccount});
-        let bcdbTxID = softwareInfo [0];
-
+        console.log("------------", softwareID);
+        let softwareInfo = await deployedSoftwareRegistry.getSoftwareByID.call(softwareID, {from: oracleAccount});
+        let bcdbTxID = softwareInfo[0];
         let softwareAssets = await conn.searchAssets(bcdbTxID);
 
         if (softwareAssets.length === 0) {

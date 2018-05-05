@@ -24,6 +24,7 @@ contract ComputationRegistry {
         address owner;
         uint amount;
         ComputationStatus status;
+        bytes32 userPubKeyIpfsHash;
     }
     //compuation id to ComputationInfo
     mapping(bytes32 => ComputationInfo) public computations;
@@ -39,10 +40,11 @@ contract ComputationRegistry {
     }
 
     //@param container id, software id, dataset id and owner of the computation
-    function addComputation(bytes32 _id, bytes32 _datasetID, bytes32 _softwareID, bytes32 _containerID, uint _amount, address _owner) onlyIfAllowed public returns (bool res) {
+    function addComputation(bytes32 _id, bytes32 _userPubKeyIpfsHash, bytes32 _datasetID, bytes32 _softwareID, bytes32 _containerID, uint _amount, address _owner) onlyIfAllowed public returns (bool res) {
 
         computations[_id].computationID = _id;
         computations[_id].containerID = _containerID;
+        computations[_id].userPubKeyIpfsHash = _userPubKeyIpfsHash;
         computations[_id].datasetID = _datasetID;
         computations[_id].softwareID = _softwareID;
 
@@ -80,6 +82,7 @@ contract ComputationRegistry {
         return(computations[_computationID].owner,computations[_computationID].amount);
     }
 
+    //TODO remove - use computations
     function getComputationInfo(bytes32 _computationID) public constant returns(bytes32 _dsID, bytes32 _swID, bytes32 _contID) {
         return(computations[_computationID].datasetID, computations[_computationID].softwareID, computations[_computationID].containerID);
     }
