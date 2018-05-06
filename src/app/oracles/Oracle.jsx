@@ -72,16 +72,7 @@ async function watchComputationEvents(web3, oracleAccount) {
             console.log(error);
         } else {
             if (event.blockNumber !== latestBlock) {
-                //TODO get read ipfs (maybe)
-                // let userPubKey = '-----BEGIN PUBLIC KEY-----\n' +
-                //     'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEJQ3O9G+DjeR9/ylAh7lC131o\n' +
-                //     'JxCtfQkKxSk9IOgqKvZN8/mUEgFTOn8jFokThmP9QJvHNKN0ZMbtxnucMIFN38Y0\n' +
-                //     'WVO13aybYpSrIETytZetKKMgIF0s6Aw5a0jnu3V/GcjAap2XolRP8TR+mRhd6vII\n' +
-                //     'xGdT+PiEBfYubyKZHwIDAQAB\n' +
-                //     '-----END PUBLIC KEY-----\n';
                 console.log("EVENT Received: ", event.args);
-                // console.log(userPubKey);
-
 
                 let computationID = event.args.computationID;
                 let userPubKeyIpfs = event.args.userPubKeyIpfsHash;
@@ -105,15 +96,10 @@ async function watchComputationEvents(web3, oracleAccount) {
 
                 if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
                     console.log("-------------- COMPUTATION VALID --------------");
-                    // CREATE EXEC INSTANCE
-                    ipfs.files.cat(userPubKeyIpfsHash, function (err, file) {
-                        if (err) {
-                            throw err
-                        }
 
-                        console.log(file.toString('utf8'))
-                    });
-                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyIpfsHash);
+                    let userPubKeyContents = (await ipfs.files.cat(userPubKeyIpfsHash)).toString('utf8');
+                    // CREATE EXEC INSTANCE
+                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyContents);
 
                     if (execResult[0] === "FAILURE") {
 
@@ -307,6 +293,7 @@ async function returnFunds(web3, computationID, oracleAccount) {
 }
 
 async function storeResult(web3, resultOwner, result, oracleAccount) {
+    console.log("[storeResult] - Storing result...");
     //result is an IPFS hash
     // Convert IPFS hash to bytes32 size according to: https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
     let shortResult = '0x' + bs58.decode(result).slice(2).toString('hex');
@@ -316,7 +303,7 @@ async function storeResult(web3, resultOwner, result, oracleAccount) {
 
     try {
         let success = await deployedResultManager.addResultInfo(resultOwner, shortResult, {from: oracleAccount});
-        console.log("RESULT STORED");
+        console.log("[storeResult] - Result stored");
         return 0;
     } catch (e) {
         return 1;
@@ -324,18 +311,19 @@ async function storeResult(web3, resultOwner, result, oracleAccount) {
 }
 
 async function handleError(web3, msg, oracleAccount) {
-
+    console.log("[handleError] - Reporting error");
     let ResultManager = initContract(ResultManagerJSON);
     let deployedResultManager = await ResultManager.deployed();
-    let res = await deployedResultManager.resultError(web3.utils.fromAscii(msg), {from: oracleAccount});
+    try {
+        let res = await deployedResultManager.resultError(web3.utils.fromAscii(msg), {from: oracleAccount});
+        return 0;
+    } catch (e) {
+        return 1;
+    }
+
 }
 
 async function verifyFunds(softwareID, datasetID, containerID, fundsInComputation, oracleAccount) {
-    console.log(softwareID);
-    console.log(datasetID);
-    console.log(containerID);
-    console.log(fundsInComputation);
-    console.log(oracleAccount);
     let sw = await getSoftwareByID(web3, softwareID, oracleAccount);
     let swCost = sw.cost;
 
