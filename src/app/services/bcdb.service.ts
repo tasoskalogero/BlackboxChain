@@ -12,13 +12,13 @@ export class BcdbService {
         });
     }
 
-    async insertDataset(ipfsHash, dsName, dsDescr, cost) {
+    async insertDataset(ipfsHash, dsName, dsSpecs, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
 
         // let encodedDataset = btoa(datasetContent);
-        console.log('[BCDB] Posting dataset' + ipfsHash + ' ' + dsName + ' ' + dsDescr + ' ' + cost);
+        console.log('[BCDB] Posting dataset' + ipfsHash + ' ' + dsName + ' ' + dsSpecs + ' ' + cost);
 
-        let asset = {datasetName: dsName, ipfsHash: ipfsHash, description: dsDescr, cost: cost};
+        let asset = {datasetName: dsName, ipfsHash: ipfsHash, specification: dsSpecs, cost: cost};
         let metadata = null;
 
         const tx = bcdb_driver.Transaction.makeCreateTransaction(
@@ -37,14 +37,14 @@ export class BcdbService {
         return retrievedTx.id;
     }
 
-    async insertSoftware(filename, ipfsHash, paramType, description, cost) {
+    async insertSoftware(filename, ipfsHash, paramSpecs, specification, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
-        console.log('[BCDB] Posting software: ' + filename + ' ' + ipfsHash + ' ' + paramType + ' ' + description + ' ' + cost);
+        console.log('[BCDB] Posting software: ' + filename + ' ' + ipfsHash + ' ' + paramSpecs + ' ' + specification + ' ' + cost);
         let asset = {
             filename: filename,
             ipfsHash: ipfsHash,
-            paramType: paramType,
-            description: description,
+            paramSpecs: paramSpecs,
+            specification: specification,
             cost: cost
         };
         let metadata = null;

@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {DatasetService} from '../../services/dataset.service';
 import {Web3Service} from '../../util/web3.service';
@@ -10,10 +10,6 @@ import {LoggerService} from '../../services/logger.service';
     styleUrls: ['./dataset.component.css']
 })
 export class DatasetComponent implements OnInit {
-    // @ViewChild('datasetFileInput')
-    // datasetFileInputVariable: any;   //used by ViewChild
-
-    // uploadedDatasetFile: File;
 
     datasetForm: FormGroup;
     private txStatus: string;
@@ -36,20 +32,10 @@ export class DatasetComponent implements OnInit {
         this.datasetForm = this.fb.group({
             datasetName: ['', Validators.required],
             ipfsHash: ['', Validators.required],
-            datasetDescr: ['', Validators.required],
+            datasetSpecs: ['', Validators.required],
             cost: ['', Validators.required]
         });
     }
-
-    // onChange(event) {
-    //     if(event.srcElement.files[0] != null) {
-    //         this.uploadedDatasetFile = event.srcElement.files[0];
-    //
-    //         this.loggerService.add(this.uploadedDatasetFile.name + " uploaded");
-    //         console.log(this.uploadedDatasetFile.name + ' uploaded');
-    //
-    //     }
-    // }
 
     onSubmit() {
         let formModel = this.datasetForm.value;
@@ -60,7 +46,7 @@ export class DatasetComponent implements OnInit {
                 // this.uploadedDatasetFile,
                 formModel['datasetName'],
                 formModel['ipfsHash'],
-                formModel['datasetDescr'],
+                formModel['datasetSpecs'],
                 this.web3.utils.toWei(formModel['cost'].toString(), 'ether')
             )
             .then(result => {
@@ -92,7 +78,5 @@ export class DatasetComponent implements OnInit {
 
     reset() {
         this.datasetForm.reset();
-        // this.uploadedDatasetFile = null;
-        // this.datasetFileInputVariable.nativeElement.value = "";
     }
 }

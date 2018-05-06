@@ -43,10 +43,10 @@ exports.checkDataset = async function(web3, datasetID, oracleAccount) {
         }
         let ipfsHash = datasetAssets[0].data.ipfsHash;
         let dsName = datasetAssets[0].data.datasetName;
-        let description = datasetAssets[0].data.description;
+        let specification = datasetAssets[0].data.specification;
         let cost = datasetAssets[0].data.cost;
 
-        let computedChecksum = md5(dsName+ipfsHash+description+cost);
+        let computedChecksum = md5(dsName+ipfsHash+specification+cost);
         let match = checksum === computedChecksum;
         return ([match, ipfsHash]);
     } catch (e) {

@@ -55,15 +55,15 @@ export class SoftwareService {
         let bcdbSoftwareAsset = await this.bcdbService.query(bcdbTxID);
 
         let swFilename = bcdbSoftwareAsset.filename;
-        let swParamTypes = bcdbSoftwareAsset.paramType;
-        let swDescription = bcdbSoftwareAsset.description;
+        let swParamSpecs = bcdbSoftwareAsset.paramSpecs;
+        let swSPecification = bcdbSoftwareAsset.specification;
         let costEther = this.web3.utils.fromWei(bcdbSoftwareAsset.cost, 'ether');
 
         let softwareToAdd = new Software(
             softwareIDs[i],
             swFilename,
-            swParamTypes,
-            swDescription,
+            swParamSpecs,
+            swSPecification,
             costEther
         );
 
@@ -78,23 +78,23 @@ export class SoftwareService {
     return fetchedSoftware;
   }
 
-  async addSoftware(_filename, _ipfsHash, _paramType, _description, _cost) {
+  async addSoftware(_filename, _ipfsHash, _paramSpecs, _specification, _cost) {
     let bcdbTxID = await this.bcdbService.insertSoftware(
       _filename,
       _ipfsHash,
-      _paramType,
-      _description,
+      _paramSpecs,
+      _specification,
       _cost
     );
 
     this.loggerService.add("Software stored on BigchainDB - " + bcdbTxID);
-    let checksum = this.computeChecksum(_filename, _ipfsHash, _paramType, _description, _cost);
+    let checksum = this.computeChecksum(_filename, _ipfsHash, _paramSpecs, _specification, _cost);
 
     let deployedRegistryManager = await this.RegistryManager.deployed();
     return await deployedRegistryManager.addSoftwareInfo(bcdbTxID, checksum, _cost, {from: this.currentAccount});
   }
 
-  computeChecksum(_filename, _ipfsHash, _paramType, _description, _cost) {
-    return Md5.hashStr(_filename +_ipfsHash+_paramType+_description+_cost);
+  computeChecksum(_filename, _ipfsHash, _paramSpecs, _specification, _cost) {
+    return Md5.hashStr(_filename +_ipfsHash+_paramSpecs+_specification+_cost);
   }
 }

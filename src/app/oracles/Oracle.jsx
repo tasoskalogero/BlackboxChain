@@ -94,6 +94,7 @@ async function watchComputationEvents(web3, oracleAccount) {
                 let containerDockerID = await getDockerContainerID(web3, containerID, oracleAccount);
                 let containerAlive = await getContainerStatus(containerDockerID);
 
+                console.log(enoughFunds, datasetMatch[0], softwareMatch[0], containerAlive);
                 if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
                     console.log("-------------- COMPUTATION VALID --------------");
 

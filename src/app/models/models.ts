@@ -2,7 +2,7 @@ export class Dataset {
     constructor(
         public ID: string,
         public datasetName: string,
-        public datasetDescription: string,
+        public datasetSpecification: string,
         public cost: number,
     ) {
     }
@@ -22,8 +22,8 @@ export class Software {
     constructor(
         public ID: string,
         public filename: string,
-        public paramType: string,
-        public description: string,
+        public paramSpecs: string,
+        public specification: string,
         public cost: number,
     ) {
     }

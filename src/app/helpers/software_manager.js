@@ -45,11 +45,11 @@ exports.checkSoftware = async function(web3, softwareID, oracleAccount) {
         }
         let filename = softwareAssets[0].data.filename;
         let ipfsHash = softwareAssets[0].data.ipfsHash;
-        let paramType = softwareAssets[0].data.paramType;
-        let description = softwareAssets[0].data.description;
+        let paramSpecs = softwareAssets[0].data.paramSpecs;
+        let specification = softwareAssets[0].data.specification;
         let cost = softwareAssets[0].data.cost;
 
-        let computedChecksum = md5(filename+ipfsHash+paramType+description+cost);
+        let computedChecksum = md5(filename+ipfsHash+paramSpecs+specification+cost);
         let match = checksum === computedChecksum;
         return ([match, ipfsHash]);
     } catch (e) {

@@ -56,13 +56,13 @@ export class DatasetService {
                 let bcdbDatasetAsset = await this.bcdbService.query(bcdbTxID);
 
                 let datasetName = bcdbDatasetAsset.datasetName;
-                let datasetDescription = bcdbDatasetAsset.description;
+                let datasetSpecification = bcdbDatasetAsset.specification;
                 let costEther = this.web3.utils.fromWei(bcdbDatasetAsset.cost, 'ether');
 
                 let datasetToAdd = new Dataset(
                     datasetIDs[i],
                     datasetName,
-                    datasetDescription,
+                    datasetSpecification,
                     costEther);
                 fetchedDatasets.push(datasetToAdd);
             }
@@ -74,21 +74,21 @@ export class DatasetService {
 
     }
 
-    async addDataset(_dsName, _ipfsHash, _dsDescription, _cost) {
+    async addDataset(_dsName, _ipfsHash, _dsSpecification, _cost) {
         // let encryptedDatasetContents = await this.readFile(datasetFile);
-        let bcdbTxID = await this.bcdbService.insertDataset(_ipfsHash, _dsName, _dsDescription, _cost);
+        let bcdbTxID = await this.bcdbService.insertDataset(_ipfsHash, _dsName, _dsSpecification, _cost);
 
         this.loggerService.add('Dataset stored on BigchainDB - ' + bcdbTxID);
 
-        let checksum = this.computeChecksum(_dsName, _ipfsHash, _dsDescription, _cost);
+        let checksum = this.computeChecksum(_dsName, _ipfsHash, _dsSpecification, _cost);
         let deployedRegistryManager = await this.RegistryManager.deployed();
 
         return await deployedRegistryManager.addDatasetInfo(bcdbTxID, checksum, _cost, {from: this.currentAccount});
     }
 
 
-    computeChecksum(_name, _ipfsHash, _description, _cost) {
-        return Md5.hashStr(_name + _ipfsHash + _description + _cost);
+    computeChecksum(_name, _ipfsHash, _specification, _cost) {
+        return Md5.hashStr(_name + _ipfsHash + _specification + _cost);
     }
 
     // readFile(dataFile) {

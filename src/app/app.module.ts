@@ -17,7 +17,6 @@ import { HomeComponent } from './components/home/home.component';
 import { ContainerComponent } from './components/container/container.component';
 import {ComputationLayoutComponent} from './components/layouts/computation-layout/computation-layout.component';
 import {SoftwareComponent} from './components/software/software.component';
-import {PubKeyUploadLayoutComponent} from './components/layouts/pubKeyUpload-layout/pubKeyUpload-layout.component';
 import {DatasetLayoutComponent} from './components/layouts/dataset-layout/dataset-layout.component';
 import {SoftwareLayoutComponent} from './components/layouts/software-layout/software-layout.component';
 import {ContainerLayoutComponent} from './components/layouts/container-layout/container-layout.component';
@@ -40,7 +39,6 @@ import {ResultService} from './services/result.service';
     SoftwareLayoutComponent,
     ContainerComponent,
     ContainerLayoutComponent,
-    PubKeyUploadLayoutComponent,
     DatasetComponent,
     DatasetLayoutComponent,
     ResultLayoutComponent

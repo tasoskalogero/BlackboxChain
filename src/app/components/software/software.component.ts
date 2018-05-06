@@ -32,8 +32,8 @@ export class SoftwareComponent implements OnInit {
             id: '',
             filename: ['', Validators.required],
             ipfsHash: ['', Validators.required],
-            paramType: ['', Validators.required],
-            description: ['', Validators.required],
+            paramSpecs: ['', Validators.required],
+            specification: ['', Validators.required],
             cost: ['', Validators.required]
         });
     }
@@ -46,8 +46,8 @@ export class SoftwareComponent implements OnInit {
         this.softwareService.addSoftware(
             formModel['filename'],
             formModel['ipfsHash'],
-            formModel['paramType'],
-            formModel['description'],
+            formModel['paramSpecs'],
+            formModel['specification'],
             this.web3.utils.toWei(formModel['cost'].toString(), 'ether'))
             .then(result => {
                 if (!result) {
