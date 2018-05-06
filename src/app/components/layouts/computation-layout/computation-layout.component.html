@@ -1,10 +1,4 @@
 <div class="container">
-    <!--<div class="row align-items-center">-->
-        <!--<div class="col">-->
-            <!--<app-pub-key-upload></app-pub-key-upload>-->
-        <!--</div>-->
-    <!--</div>-->
-
     <form [formGroup]="pubKeyForm"  novalidate>
         <h3>Public key upload:</h3>
         <div>Your public key will be used from the container to encrypt the result.</div>
@@ -35,7 +29,6 @@
 
     <div class="row align-items-center">
         <div class="col">
-            <!--<button type="submit" class="btn btn-primary" (click)="onSubmit()" [disabled]="(!software || !container ||!uploadedUserPubKeyFile || !dataset)">Run</button>-->
             <button type="submit" class="btn btn-primary" (click)="onSubmit()" [disabled]="(!software || !container || !pubKeyIpfsHash || pubKeyIpfsHash == '' || !dataset)">Run</button>
             <button type="submit" class="btn btn-danger" (click)="cancel()">Cancel</button>
         </div>

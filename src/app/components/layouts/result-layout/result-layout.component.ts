@@ -18,7 +18,7 @@ export class ResultLayoutComponent implements OnInit {
     currentAccount: string;
     ResultRegistry: any;
     fetchedResults: Result[];
-    prevAccount: string;
+    prevAccount: string;        //used to refresh wallet account if changed
 
     constructor(
         private resultService: ResultService,

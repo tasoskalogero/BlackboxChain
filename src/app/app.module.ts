@@ -9,7 +9,6 @@ import {PageNotFoundComponent} from './components/page-not-found.component';
 import {AppRoutingModule} from './app-routing.module';
 import {SoftwareService} from './services/software.service';
 import {Web3Service} from './util/web3.service';
-import {DockerCommunicationService} from './services/docker-communication.service';
 import { LoggerComponent } from './components/logger/logger.component';
 import {LoggerService} from './services/logger.service';
 import { DatasetComponent } from './components/dataset/dataset.component';
@@ -53,7 +52,7 @@ import {ResultService} from './services/result.service';
     HttpClientModule,
     AppRoutingModule
   ],
-  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, DockerCommunicationService, LoggerService, DatasetService, BcdbService, OrderService, ResultService],
+  providers: [CommunicationService, ContainerService, SoftwareService, Web3Service, LoggerService, DatasetService, BcdbService, OrderService, ResultService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

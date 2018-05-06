@@ -7,12 +7,10 @@ export class CommunicationService {
 
   private containerSource= new Subject<Container>();
   private softwareSource= new Subject<Software>();
-  private userPubKeyFile = new Subject<File>();
   private datasetSource = new Subject<Dataset>();
 
   container$ = this.containerSource.asObservable();
   software$ = this.softwareSource.asObservable();
-  uploadedUserPubKey$ = this.userPubKeyFile.asObservable();
   dataset$ = this.datasetSource.asObservable();
 
 
@@ -22,10 +20,6 @@ export class CommunicationService {
 
   announceSoftware(sw: Software) {
     this.softwareSource.next(sw);
-  }
-
-  announceUserPubKeyFileUpload(uploadedPubKeyFile: File) {
-    this.userPubKeyFile.next(uploadedPubKeyFile);
   }
 
   announceDataset(dataset: Dataset) {
