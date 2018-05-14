@@ -17,7 +17,7 @@ contract ResultRegistry {
     }
 
     //owner address to ResultStruct
-    mapping(address => ResultStruct) resultRegistry;
+    mapping(address => ResultStruct) idToResultStruct;
 
     mapping(address => bool) public accessAllowed;
 
@@ -34,12 +34,12 @@ contract ResultRegistry {
     * @param owner of the result, ipfs hash of result
     */
     function addResult(address _owner, bytes32 _newResult) onlyIfAllowed public returns(bool){
-        resultRegistry[_owner].results.push(_newResult);
+        idToResultStruct[_owner].results.push(_newResult);
         return true;
     }
 
     function getResultsByAddress(address owner) public view returns(bytes32[]) {
         require(msg.sender == owner);
-        return resultRegistry[owner].results;
+        return idToResultStruct[owner].results;
     }
 }

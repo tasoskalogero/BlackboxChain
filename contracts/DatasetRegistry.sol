@@ -21,7 +21,7 @@ contract DatasetRegistry {
     }
 
     //datasetId => DatasetInfo
-    mapping(bytes32 => DatasetInfo) datasetRegistry;
+    mapping(bytes32 => DatasetInfo) idToDatasetRegistry;
 
     mapping(address => bool) accessAllowed;
 
@@ -40,10 +40,10 @@ contract DatasetRegistry {
     function addDataset(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed public returns (bool success) {
         datasetIdentifiers.push(_id);
 
-        datasetRegistry[_id].bcdbTxID = _bcdbTxID;
-        datasetRegistry[_id].checksum = _checksum;
-        datasetRegistry[_id].cost = _cost;
-        datasetRegistry[_id].owner = _owner;
+        idToDatasetRegistry[_id].bcdbTxID = _bcdbTxID;
+        idToDatasetRegistry[_id].checksum = _checksum;
+        idToDatasetRegistry[_id].cost = _cost;
+        idToDatasetRegistry[_id].owner = _owner;
         return true;
     }
 
@@ -55,13 +55,13 @@ contract DatasetRegistry {
     // @param Dataset id
     // @return DatasetInfo properties
     function getDatasetByID(bytes32 _id) public view returns (string _bcdbTxID, string checksum, uint cost, address owner) {
-        return (datasetRegistry[_id].bcdbTxID, datasetRegistry[_id].checksum, datasetRegistry[_id].cost, datasetRegistry[_id].owner);
+        return (idToDatasetRegistry[_id].bcdbTxID, idToDatasetRegistry[_id].checksum, idToDatasetRegistry[_id].cost, idToDatasetRegistry[_id].owner);
     }
 
     // @param Dataset id
     // @return Cost of using dataset, owner of the dataset - used by OrderDb to handle payment
     function getPaymentInfo(bytes32 _id) public view returns (uint _cost, address _owner) {
-        return (datasetRegistry[_id].cost, datasetRegistry[_id].owner);
+        return (idToDatasetRegistry[_id].cost, idToDatasetRegistry[_id].owner);
     }
 }
 

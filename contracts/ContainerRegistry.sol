@@ -21,7 +21,7 @@ contract ContainerRegistry {
     }
 
     //containerId => ContainerInfo
-    mapping(bytes32 => ContainerInfo) containerRegistry;
+    mapping(bytes32 => ContainerInfo) idToContainerInfo;
     mapping(address => bool) accessAllowed;
 
 
@@ -37,10 +37,10 @@ contract ContainerRegistry {
     function addContainer(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed public returns(bool success) {
         containerIdentifiers.push(_id);
 
-        containerRegistry[_id].bcdbTxID = _bcdbTxID;
-        containerRegistry[_id].checksum = _checksum;
-        containerRegistry[_id].cost = _cost;
-        containerRegistry[_id].owner = _owner;
+        idToContainerInfo[_id].bcdbTxID = _bcdbTxID;
+        idToContainerInfo[_id].checksum = _checksum;
+        idToContainerInfo[_id].cost = _cost;
+        idToContainerInfo[_id].owner = _owner;
         return true;
     }
 
@@ -52,13 +52,13 @@ contract ContainerRegistry {
     // @param Container id
     // @return ContainerInfo properties
     function getContainerByID(bytes32 _id) public view returns(string _bcdbTxID, string checksum, uint cost, address owner) {
-        return (containerRegistry[_id].bcdbTxID, containerRegistry[_id].checksum, containerRegistry[_id].cost, containerRegistry[_id].owner);
+        return (idToContainerInfo[_id].bcdbTxID, idToContainerInfo[_id].checksum, idToContainerInfo[_id].cost, idToContainerInfo[_id].owner);
     }
 
     // @param Container id
     // @return Cost of using container, owner of the container- used by OrderDb to handle payment
     function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
-        return (containerRegistry[_id].cost, containerRegistry[_id].owner);
+        return (idToContainerInfo[_id].cost, idToContainerInfo[_id].owner);
     }
 }
 

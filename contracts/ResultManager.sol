@@ -4,7 +4,7 @@ import "./ResultRegistry.sol";
 
 contract ResultManager {
 
-    address ORACLE = 0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE;
+    address oracleAddress;
 
     event ResultAdded (
         bytes32 result,
@@ -13,17 +13,17 @@ contract ResultManager {
 
     event ResultError(bytes32 errorMsg);
 
-    ResultRegistry public resultRegistry;
+    ResultRegistry resultRegistry;
 
     modifier onlyOracle {
-        require(msg.sender == ORACLE);
+        require(msg.sender == oracleAddress);
         _;
     }
 
-    function ResultManager(address _resultRegistryAddress) public {
+    function ResultManager(address _resultRegistryAddress, address _oracle) public {
+        oracleAddress = _oracle;
         resultRegistry = ResultRegistry(_resultRegistryAddress);
     }
-
 
     function addResultInfo(address _owner, bytes32 _newResult) onlyOracle public returns(bool success) {
         bool res = resultRegistry.addResult(_owner, _newResult);

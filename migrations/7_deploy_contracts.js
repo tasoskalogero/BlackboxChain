@@ -11,7 +11,8 @@ module.exports = function(deployer) {
         ComputationRegistry.address,
         DatasetRegistry.address,
         SoftwareRegistry.address,
-        ContainerRegistry.address).then(() => {
+        ContainerRegistry.address,
+        0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE).then(() => {
 
         ComputationRegistry.deployed().then(inst => {
 

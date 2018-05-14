@@ -7,7 +7,7 @@ import "./ContainerRegistry.sol";
 
 contract ComputationManager {
 
-    address ORACLE = 0x5AEDA56215b167893e80B4fE645BA6d5Bab767DE;
+    address oracleAddress;
 
     event ComputationAdded (
         bytes32 indexed computationID,
@@ -17,21 +17,22 @@ contract ComputationManager {
         bytes32 userPubKeyIpfsHash
     );
 
-    ComputationRegistry public computationRegistry;
+    ComputationRegistry computationRegistry;
     DatasetRegistry datasetRegistry;
     SoftwareRegistry softwareRegistry;
     ContainerRegistry containerRegistry;
 
     modifier onlyOracle {
-        require(msg.sender == ORACLE);
+        require(msg.sender == oracleAddress);
         _;
     }
 
-    function ComputationManager(address _computationRegistryAddress, address _datasetRegistry, address _softwareRegistry, address _containerRegistry) public {
+    function ComputationManager(address _computationRegistryAddress, address _datasetRegistryAddress, address _softwareRegistryAdderss, address _containerRegistryAddress, address _oracleAddress) public {
         computationRegistry = ComputationRegistry(_computationRegistryAddress);
-        datasetRegistry = DatasetRegistry(_datasetRegistry);
-        softwareRegistry = SoftwareRegistry(_softwareRegistry);
-        containerRegistry = ContainerRegistry(_containerRegistry);
+        datasetRegistry = DatasetRegistry(_datasetRegistryAddress);
+        softwareRegistry = SoftwareRegistry(_softwareRegistryAdderss);
+        containerRegistry = ContainerRegistry(_containerRegistryAddress);
+        oracleAddress = _oracleAddress;
     }
 
     function addComputationInfo(bytes32 _uPubKeyIpfsHash, bytes32 _datasetID, bytes32 _softwareID, bytes32 _containerID) public payable returns(bool success) {

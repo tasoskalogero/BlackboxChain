@@ -5,7 +5,7 @@ contract ComputationRegistry {
     bytes32[] public computationIDs;
 
     modifier onlyIfPlaced(bytes32 computationID) {
-        require(computations[computationID].status == ComputationStatus.PLACED);
+        require(idToComputationInfo[computationID].status == ComputationStatus.PLACED);
         _;
     }
 
@@ -26,8 +26,8 @@ contract ComputationRegistry {
         ComputationStatus status;
         bytes32 userPubKeyIpfsHash;
     }
-    //compuation id to ComputationInfo
-    mapping(bytes32 => ComputationInfo) public computations;
+    //computation id to ComputationInfo
+    mapping(bytes32 => ComputationInfo) public idToComputationInfo;
 
     mapping(address => bool) accessAllowed;
 
@@ -42,17 +42,17 @@ contract ComputationRegistry {
     //@param container id, software id, dataset id and owner of the computation
     function addComputation(bytes32 _id, bytes32 _userPubKeyIpfsHash, bytes32 _datasetID, bytes32 _softwareID, bytes32 _containerID, uint _amount, address _owner) onlyIfAllowed public returns (bool res) {
 
-        computations[_id].computationID = _id;
-        computations[_id].containerID = _containerID;
-        computations[_id].userPubKeyIpfsHash = _userPubKeyIpfsHash;
-        computations[_id].datasetID = _datasetID;
-        computations[_id].softwareID = _softwareID;
+        idToComputationInfo[_id].computationID = _id;
+        idToComputationInfo[_id].containerID = _containerID;
+        idToComputationInfo[_id].userPubKeyIpfsHash = _userPubKeyIpfsHash;
+        idToComputationInfo[_id].datasetID = _datasetID;
+        idToComputationInfo[_id].softwareID = _softwareID;
 
-        computations[_id].owner = _owner;
+        idToComputationInfo[_id].owner = _owner;
 
-        computations[_id].amount = _amount;
+        idToComputationInfo[_id].amount = _amount;
 
-        computations[_id].status = ComputationStatus.PLACED;
+        idToComputationInfo[_id].status = ComputationStatus.PLACED;
 
         computationIDs.push(_id);
 
@@ -64,7 +64,7 @@ contract ComputationRegistry {
     * @param computation id
     */
     function computationSuccess(bytes32 _computationID) onlyIfPlaced(_computationID) onlyIfAllowed public returns (bool success) {
-        computations[_computationID].status = ComputationStatus.SUCCEED;
+        idToComputationInfo[_computationID].status = ComputationStatus.SUCCEED;
         return true;
     }
 
@@ -73,18 +73,18 @@ contract ComputationRegistry {
     * @param computation id
     */
     function computationFailure(bytes32 _computationID) onlyIfPlaced(_computationID) onlyIfAllowed public returns (bool success) {
-        computations[_computationID].status = ComputationStatus.CANCELLED;
+        idToComputationInfo[_computationID].status = ComputationStatus.CANCELLED;
         return true;
     }
 
 
     function getComputationPaymentInfo(bytes32 _computationID) public constant returns(address owner, uint amount) {
-        return(computations[_computationID].owner,computations[_computationID].amount);
+        return(idToComputationInfo[_computationID].owner, idToComputationInfo[_computationID].amount);
     }
 
     //TODO remove - use computations
     function getComputationInfo(bytes32 _computationID) public constant returns(bytes32 _dsID, bytes32 _swID, bytes32 _contID) {
-        return(computations[_computationID].datasetID, computations[_computationID].softwareID, computations[_computationID].containerID);
+        return(idToComputationInfo[_computationID].datasetID, idToComputationInfo[_computationID].softwareID, idToComputationInfo[_computationID].containerID);
     }
 
 }
