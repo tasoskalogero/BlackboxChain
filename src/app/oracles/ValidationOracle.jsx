@@ -141,7 +141,7 @@ async function watchComputationEvents(web3, oracleAccount) {
 
                                 let resultOwner = computationInfo[4];
 
-                                let successStore = await storeResult(web3, resultOwner, result, oracleAccount);
+                                let successStore = await storeResult(resultOwner, result, oracleAccount);
 
                                 if (successStore === 1) {
                                     await handleError(web3, "Failed to store result.", oracleAccount);
@@ -158,7 +158,7 @@ async function watchComputationEvents(web3, oracleAccount) {
                     }
                     latestBlock = latestBlock + 1;
                 } else {
-                    let error_msg = "Cannot add computation.";
+                    let error_msg = "Cannot add computation ";
                     await handleError(web3, error_msg, oracleAccount);
 
                     await returnFunds(web3, computationID, oracleAccount);
@@ -294,7 +294,7 @@ async function returnFunds(web3, computationID, oracleAccount) {
     }
 }
 
-async function storeResult(web3, resultOwner, result, oracleAccount) {
+async function storeResult(resultOwner, result, oracleAccount) {
     console.log("[storeResult] - Storing result...");
     //result is an IPFS hash
     // Convert IPFS hash to bytes32 size according to: https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
