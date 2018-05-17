@@ -74,12 +74,13 @@ async function watchComputationEvents(web3, oracleAccount) {
             if (event.blockNumber !== latestBlock) {
                 console.log("EVENT Received: ", event.args);
 
+                //TODO can get ids from computation registry?? event in ComputationManager can return only the computationID
                 let computationID = event.args.computationID;
                 let userPubKeyIpfs = event.args.userPubKeyIpfsHash;
                 let softwareID = event.args.softwareID;
                 let datasetID = event.args.datasetID;
                 let containerID = event.args.containerID;
-                let computationInfo = await deployedComputationRegistry.computations.call(computationID, {from: oracleAccount});
+                let computationInfo = await deployedComputationRegistry.idToComputationInfo.call(computationID, {from: oracleAccount});
                 let amountInComputation = computationInfo[5].toNumber();
 
                 const convert = (short) => bs58.encode(Buffer.from('1220' + short.slice(2), 'hex'));
