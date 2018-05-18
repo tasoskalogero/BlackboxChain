@@ -88,7 +88,7 @@ export class DatasetService {
 
 
     computeChecksum(_name, _ipfsHash, _randKeyIpfsHash, _specification, _cost) {
-        return Md5.hashStr(_name + _ipfsHash + _randKeyIpfsHash, _specification + _cost);
+        return Md5.hashStr(_name + _ipfsHash + _randKeyIpfsHash + _specification + _cost);
     }
 
     // readFile(dataFile) {
