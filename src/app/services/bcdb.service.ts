@@ -12,13 +12,13 @@ export class BcdbService {
         });
     }
 
-    async insertDataset(ipfsHash, dsName, dsSpecs, cost) {
+    async insertDataset(dsName,ipfsHash, randKeyIpfsHash, dsSpecs, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
 
         // let encodedDataset = btoa(datasetContent);
-        console.log('[BCDB] Posting dataset' + ipfsHash + ' ' + dsName + ' ' + dsSpecs + ' ' + cost);
+        console.log('[BCDB] Posting dataset' + ipfsHash + ' ' + randKeyIpfsHash + ' ' + dsName + ' ' + dsSpecs + ' ' + cost);
 
-        let asset = {datasetName: dsName, ipfsHash: ipfsHash, specification: dsSpecs, cost: cost};
+        let asset = {datasetName: dsName, ipfsHash: ipfsHash, dsRandomKeyipfsHash: randKeyIpfsHash, specification: dsSpecs, cost: cost};
         let metadata = null;
 
         const tx = bcdb_driver.Transaction.makeCreateTransaction(

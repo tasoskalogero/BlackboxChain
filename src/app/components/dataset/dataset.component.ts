@@ -32,6 +32,7 @@ export class DatasetComponent implements OnInit {
         this.datasetForm = this.fb.group({
             datasetName: ['', Validators.required],
             ipfsHash: ['', Validators.required],
+            dsRandomKeyipfsHash: ['', Validators.required],
             datasetSpecs: ['', Validators.required],
             cost: ['', Validators.required]
         });
@@ -46,6 +47,7 @@ export class DatasetComponent implements OnInit {
                 // this.uploadedDatasetFile,
                 formModel['datasetName'],
                 formModel['ipfsHash'],
+                formModel['dsRandomKeyipfsHash'],
                 formModel['datasetSpecs'],
                 this.web3.utils.toWei(formModel['cost'].toString(), 'ether')
             )

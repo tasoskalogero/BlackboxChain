@@ -42,11 +42,12 @@ exports.checkDataset = async function(web3, datasetID, oracleAccount) {
             return false;
         }
         let ipfsHash = datasetAssets[0].data.ipfsHash;
+        let randomKeyIpfsHash = datasetAssets[0].data.dsRandomKeyipfsHash;
         let dsName = datasetAssets[0].data.datasetName;
         let specification = datasetAssets[0].data.specification;
         let cost = datasetAssets[0].data.cost;
 
-        let computedChecksum = md5(dsName+ipfsHash+specification+cost);
+        let computedChecksum = md5(dsName + ipfsHash + randomKeyIpfsHash + specification + cost);
         let match = checksum === computedChecksum;
         return ([match, ipfsHash]);
     } catch (e) {

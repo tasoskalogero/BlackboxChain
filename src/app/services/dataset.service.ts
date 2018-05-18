@@ -74,21 +74,21 @@ export class DatasetService {
 
     }
 
-    async addDataset(_dsName, _ipfsHash, _dsSpecification, _cost) {
+    async addDataset(_dsName, _ipfsHash, _randKeyIpfsHash, _dsSpecification, _cost) {
         // let encryptedDatasetContents = await this.readFile(datasetFile);
-        let bcdbTxID = await this.bcdbService.insertDataset(_ipfsHash, _dsName, _dsSpecification, _cost);
+        let bcdbTxID = await this.bcdbService.insertDataset(_dsName, _ipfsHash, _randKeyIpfsHash, _dsSpecification, _cost);
 
         this.loggerService.add('Dataset stored on BigchainDB - ' + bcdbTxID);
 
-        let checksum = this.computeChecksum(_dsName, _ipfsHash, _dsSpecification, _cost);
+        let checksum = this.computeChecksum(_dsName, _ipfsHash, _randKeyIpfsHash, _dsSpecification, _cost);
         let deployedRegistryManager = await this.RegistryManager.deployed();
 
         return await deployedRegistryManager.addDatasetInfo(bcdbTxID, checksum, _cost, {from: this.currentAccount});
     }
 
 
-    computeChecksum(_name, _ipfsHash, _specification, _cost) {
-        return Md5.hashStr(_name + _ipfsHash + _specification + _cost);
+    computeChecksum(_name, _ipfsHash, _randKeyIpfsHash, _specification, _cost) {
+        return Md5.hashStr(_name + _ipfsHash + _randKeyIpfsHash, _specification + _cost);
     }
 
     // readFile(dataFile) {

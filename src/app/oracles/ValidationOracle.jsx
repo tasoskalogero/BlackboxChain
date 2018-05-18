@@ -99,9 +99,13 @@ async function watchComputationEvents(web3, oracleAccount) {
                 if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
                     console.log("-------------- COMPUTATION VALID --------------");
 
+                    let ds = await getDatasetByID(web3, datasetID, oracleAccount);
+                    let randomKeyipfsHash = ds.dsRandomKeyipfsHash;
+                    let dsRandKeyContents = (await ipfs.files.cat(randomKeyipfsHash)).toString('utf8');
+
                     let userPubKeyContents = (await ipfs.files.cat(userPubKeyIpfsHash)).toString('utf8');
                     // CREATE EXEC INSTANCE
-                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyContents);
+                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyContents, dsRandKeyContents);
 
                     if (execResult[0] === "FAILURE") {
 
@@ -170,10 +174,10 @@ async function watchComputationEvents(web3, oracleAccount) {
 }
 
 
-async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyIpfsHash) {
+async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyContents) {
     console.log("[CreateExecInstance] ", containerID, datasetIpfsHash, softwareIPFSHash);
 
-    let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKeyIpfsHash];
+    let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyContents];
     let bodyCmd = JSON.stringify({
         Cmd: commands,
         AttachStdout: true
