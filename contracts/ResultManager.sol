@@ -7,7 +7,8 @@ contract ResultManager {
     address oracleAddress;
 
     event ResultAdded (
-        bytes32 result,
+        bytes32 resultData,
+        bytes32 password,
         address owner
     );
 
@@ -25,10 +26,10 @@ contract ResultManager {
         resultRegistry = ResultRegistry(_resultRegistryAddress);
     }
 
-    function addResultInfo(address _owner, bytes32 _newResult) onlyOracle public returns(bool success) {
-        bool res = resultRegistry.addResult(_owner, _newResult);
+    function addResultInfo(address _owner, bytes32 _newResultData, bytes32 _newPassword) onlyOracle public returns(bool success) {
+        bool res = resultRegistry.addResult(_owner, _newResultData, _newPassword);
         if(res) {
-            ResultAdded(_newResult, _owner);
+            ResultAdded(_newResultData, _newPassword, _owner);
             return true;
         }
         return false;

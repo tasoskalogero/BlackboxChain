@@ -1,0 +1,33 @@
+FROM alpine:latest
+
+COPY requirements.txt .
+
+COPY getDataset.py .
+COPY getSoftware.py .
+COPY writeResult.py .
+COPY wrapper.sh .
+COPY decryptRandomKey.sh .
+COPY randomKeyGen.sh .
+COPY generatekeys.sh .
+
+# Install dependencies
+RUN apk add --no-cache --virtual .build-deps \
+    gfortran \
+    musl-dev \
+    g++
+RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
+
+RUN apk add --update \
+		lapack-dev \
+		freetype-dev \
+		gcc \
+		bash \
+		openssl \
+		python3 && \
+		pip3 install --upgrade pip \
+		setuptools && \
+		pip3 install -r requirements.txt && \
+		rm requirements.txt \
+		rm -rf /var/cache/apk/*
+
+RUN apk del .build-deps

@@ -6,7 +6,9 @@
         <ul id="grouplist" class="list-group">
             <li style="cursor: pointer" class="list-group-item"
                 *ngFor="let result of fetchedResults">
-                <strong>IPFS Hash:</strong> {{result.ipfsHash}}
+                <strong>Data IPFS Hash:</strong> {{result.dataIpfsHash}}
+                <br/>
+                <strong>Password IPFS Hash:</strong> {{result.passwordIpfsHash}}
             </li>
         </ul>
     </div>

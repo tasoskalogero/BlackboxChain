@@ -31,6 +31,7 @@ export class Software {
 
 export class Result {
     constructor(
-        public ipfsHash: string
+        public dataIpfsHash: string,
+        public passwordIpfsHash: string,
     ) {}
 }

@@ -7,8 +7,17 @@ pragma solidity ^0.4.19;
 
 contract ResultRegistry {
 
+    //TODO change UML
+
+
+    struct ResultInfo {
+        bytes32 resultData;
+        bytes32 password;
+    }
+
     struct ResultStruct {
-        bytes32[] results;
+        ResultInfo[] results;
+        uint count;
     }
 
     modifier onlyIfAllowed () {
@@ -17,14 +26,16 @@ contract ResultRegistry {
     }
 
     //owner address to ResultStruct
-    mapping(address => ResultStruct) idToResultStruct;
+    mapping(address => ResultStruct) addressToResult;
 
+    //TODO remove public
     mapping(address => bool) public accessAllowed;
 
     function ResultRegistry() public {
         accessAllowed[msg.sender] = true;
     }
 
+    //TODO restrict access from other addresses, only from ResultManager
     function allowAccess(address _address) onlyIfAllowed public {
         accessAllowed[_address] = true;
     }
@@ -33,13 +44,20 @@ contract ResultRegistry {
     * Add a new result for a specific owner.
     * @param owner of the result, ipfs hash of result
     */
-    function addResult(address _owner, bytes32 _newResult) onlyIfAllowed public returns(bool){
-        idToResultStruct[_owner].results.push(_newResult);
+    function addResult(address _owner, bytes32 _newResultData, bytes32 _newPassword) onlyIfAllowed public returns(bool){
+
+        addressToResult[_owner].results.push(ResultInfo(_newResultData, _newPassword));
+        addressToResult[_owner].count = addressToResult[_owner].count + 1;
         return true;
     }
 
-    function getResultsByAddress(address owner) public view returns(bytes32[]) {
+    function getResultCount(address owner) public view returns(uint) {
         require(msg.sender == owner);
-        return idToResultStruct[owner].results;
+        return addressToResult[owner].count;
+    }
+
+    function getResult(address owner, uint index) public view returns(bytes32, bytes32) {
+        require(msg.sender == owner);
+        return (addressToResult[owner].results[index].resultData, addressToResult[owner].results[index].password);
     }
 }

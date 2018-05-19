@@ -101,11 +101,11 @@ async function watchComputationEvents(web3, oracleAccount) {
 
                     let ds = await getDatasetByID(web3, datasetID, oracleAccount);
                     let randomKeyipfsHash = ds.dsRandomKeyipfsHash;
-                    let dsRandKeyContents = (await ipfs.files.cat(randomKeyipfsHash)).toString('utf8');
+                    // let dsRandKeyContents = (await ipfs.files.cat(randomKeyipfsHash)).toString('utf8');
 
                     let userPubKeyContents = (await ipfs.files.cat(userPubKeyIpfsHash)).toString('utf8');
                     // CREATE EXEC INSTANCE
-                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyContents, dsRandKeyContents);
+                    let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyContents, randomKeyipfsHash);
 
                     if (execResult[0] === "FAILURE") {
 
@@ -123,7 +123,7 @@ async function watchComputationEvents(web3, oracleAccount) {
                         // EXECUTE
                         let result = await runExec(exec_id);
 
-                        result = result.replace(/[\u0001\u0000\u0004]/g, "");
+                        result = result.replace(/[\u0001\u0000\u0004^]/g, "");
                         result = result.trim();
 
                         let error_codes_array = errors.getErrorCodes();
@@ -173,11 +173,14 @@ async function watchComputationEvents(web3, oracleAccount) {
     });
 }
 
+async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyIPFS) {
+    console.log("[CreateExecInstance] ", containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyIPFS);
 
-async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyContents) {
-    console.log("[CreateExecInstance] ", containerID, datasetIpfsHash, softwareIPFSHash);
+    // let b64Encoded = Buffer.from(dsRandKeyContents).toString('base64');
+    // console.log(b64Encoded);
+    // console.log(Buffer.from(b64Encoded, 'base64').toString());
 
-    let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyContents];
+    let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyIPFS];
     let bodyCmd = JSON.stringify({
         Cmd: commands,
         AttachStdout: true
@@ -299,16 +302,25 @@ async function returnFunds(web3, computationID, oracleAccount) {
 }
 
 async function storeResult(resultOwner, result, oracleAccount) {
-    console.log("[storeResult] - Storing result...");
-    //result is an IPFS hash
+    console.log("[storeResult] - Storing result...", result);
+    //result is a space separated string of the dataset IPFS hash and the random key IPFS hash
+
     // Convert IPFS hash to bytes32 size according to: https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
-    let shortResult = '0x' + bs58.decode(result).slice(2).toString('hex');
+    let ipfsHashes = result.split(" ");
+    let datasetIpfsAddress = ipfsHashes[0];
+    let passwordIpfsAddress = ipfsHashes[1];
+
+
+    let shortDataResult = '0x' + bs58.decode(datasetIpfsAddress).slice(2).toString('hex');
+    console.log(shortDataResult);
+    let shortPassword = '0x' + bs58.decode(passwordIpfsAddress).slice(2).toString('hex');
+    console.log(shortPassword);
 
     let ResultManager = initContract(ResultManagerJSON);
     let deployedResultManager = await ResultManager.deployed();
 
     try {
-        let success = await deployedResultManager.addResultInfo(resultOwner, shortResult, {from: oracleAccount});
+        let success = await deployedResultManager.addResultInfo(resultOwner ,shortDataResult, shortPassword, {from: oracleAccount, gas: 3000000});
         console.log("[storeResult] - Result stored");
         return 0;
     } catch (e) {
@@ -316,7 +328,7 @@ async function storeResult(resultOwner, result, oracleAccount) {
     }
 }
 
-async function handleError(web3, msg, oracleAccount) {
+async function handleError(msg, oracleAccount) {
     console.log("[handleError] - Reporting error");
     let ResultManager = initContract(ResultManagerJSON);
     let deployedResultManager = await ResultManager.deployed();

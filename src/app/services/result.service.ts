@@ -31,21 +31,35 @@ export class ResultService {
     }
 
     async getResults() {
+        console.log('getResults');
         this.currentAccount = await this.web3.eth.getCoinbase();
 
         let fetchedResults = [];
 
         let deployedResultRegistry = await this.ResultRegistry.deployed();
         try {
-            let results = await deployedResultRegistry.getResultsByAddress.call(this.currentAccount, {from:this.currentAccount});
-            console.log("Results " + results);
+            let resultCount = await deployedResultRegistry.getResultCount.call(this.currentAccount, {from:this.currentAccount});
+            resultCount = resultCount.toNumber();
 
-            for(let i = 0; i < results.length; ++i) {
-                // Create IPFS hash from 32 bytes - https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
-                let ipfsHash = bs58.encode(Buffer.from('1220' + results[i].slice(2), 'hex'));
-                let resultToAdd = new Result(ipfsHash);
+            for(let i = 0; i < resultCount; ++i) {
+                let result = await deployedResultRegistry.getResult.call(this.currentAccount, i, {from:this.currentAccount});
+                console.log(result);
+                let dataIpfsHash = bs58.encode(Buffer.from('1220' + result[0].slice(2), 'hex'));
+                let passwordIpfsHash = bs58.encode(Buffer.from('1220' + result[1].slice(2), 'hex'));
+
+                let resultToAdd = new Result(dataIpfsHash, passwordIpfsHash);
                 fetchedResults.push(resultToAdd);
             }
+
+            // let results = await deployedResultRegistry.getResultsByAddress.call(this.currentAccount, {from:this.currentAccount});
+            // console.log("Results " + results);
+
+            // for(let i = 0; i < results.length; ++i) {
+            //     // Create IPFS hash from 32 bytes - https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
+            //     let ipfsHash = bs58.encode(Buffer.from('1220' + results[i].slice(2), 'hex'));
+            //     let resultToAdd = new Result(ipfsHash);
+            //     fetchedResults.push(resultToAdd);
+            // }
             return fetchedResults;
         }catch (e) {
             console.log(e);

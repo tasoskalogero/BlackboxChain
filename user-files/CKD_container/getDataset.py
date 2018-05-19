@@ -13,6 +13,7 @@ try:
 
 	# bdb_root_url = 'docker.for.mac.host.internal:59984'
 	api = ipfsapi.connect('docker.for.mac.host.internal', 5001)
+#	api = ipfsapi.connect('localhost', 5001)
 
 	# bdb = BigchainDB(bdb_root_url)
 
