@@ -47,7 +47,7 @@ RESULT_FILE="result.enc"
 
 echo "$user_pub_key" > $USER_PUB_KEY
 
-python3 decodeRandKey.py "$random_key" $RANDOM_KEY_FILE
+python3 getRandomKey.py "$random_key" $RANDOM_KEY_FILE
 
 # get dataset (encrypted) file from IPFS
 python3 $FETCH_DATASET_FILE $dsIPFSHash $CIPHERTEXT_FILENAME
