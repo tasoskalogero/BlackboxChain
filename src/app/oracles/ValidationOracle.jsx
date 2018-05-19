@@ -113,8 +113,8 @@ async function watchComputationEvents(web3, oracleAccount) {
                         console.log("[Error creating exec instance.");
 
                         let msg = "Error before execution.";
-                        await handleError(web3, msg, oracleAccount);
-                        await returnFunds(web3, computationID, oracleAccount);
+                        await handleError(msg, oracleAccount);
+                        await returnFunds(computationID, oracleAccount);
                         console.log("Funds returned");
                     } else {
                         let exec_id = JSON.parse(execResult[1]).Id;
@@ -131,14 +131,14 @@ async function watchComputationEvents(web3, oracleAccount) {
                             let error_msg = errors.getErrorMessage(parseInt(result));
 
                             console.log(error_msg);
-                            await handleError(web3, error_msg, oracleAccount);
-                            await returnFunds(web3, computationID, oracleAccount);
+                            await handleError(error_msg, oracleAccount);
+                            await returnFunds(computationID, oracleAccount);
                             console.log("Funds returned");
                         } else {
                             result = result.replace(/\//g, ""); // remove '/' from ipfs address result
                             console.log("Final result received", result);
 
-                            let successPayment = await execPayment(web3, computationID, oracleAccount);
+                            let successPayment = await execPayment(computationID, oracleAccount);
 
                             // computation succeed - funds transferred to providers
                             if (successPayment === 0) {
@@ -148,14 +148,14 @@ async function watchComputationEvents(web3, oracleAccount) {
                                 let successStore = await storeResult(resultOwner, result, oracleAccount);
 
                                 if (successStore === 1) {
-                                    await handleError(web3, "Failed to store result.", oracleAccount);
-                                    await returnFunds(web3, computationID, oracleAccount);
+                                    await handleError("Failed to store result.", oracleAccount);
+                                    await returnFunds(computationID, oracleAccount);
                                     console.log("Failed to store the result for the computation ", computationID, ". Funds returned.");
                                 }
                                 // Computation failed to fulfill - funds returned to buyer
                             } else {
-                                await handleError(web3, "Failed to fulfill computation.", oracleAccount);
-                                await returnFunds(web3, computationID, oracleAccount);
+                                await handleError("Failed to fulfill computation.", oracleAccount);
+                                await returnFunds(computationID, oracleAccount);
                                 console.log("Failed to fulfill the computation ", computationID, ". Funds returned.");
                             }
                         }
@@ -163,9 +163,9 @@ async function watchComputationEvents(web3, oracleAccount) {
                     latestBlock = latestBlock + 1;
                 } else {
                     let error_msg = "Cannot add computation ";
-                    await handleError(web3, error_msg, oracleAccount);
+                    await handleError(error_msg, oracleAccount);
 
-                    await returnFunds(web3, computationID, oracleAccount);
+                    await returnFunds(computationID, oracleAccount);
                     console.log("Computation", computationID, " cannot be placed. Funds returned.");
                 }
             }
@@ -272,7 +272,7 @@ async function runExec(execID) {
     })
 }
 
-async function execPayment(web3, computationID, oracleAccount) {
+async function execPayment(computationID, oracleAccount) {
     let ComputationManager = initContract(ComputationManagerJSON);
     let deployedComputationManager = await ComputationManager.deployed();
 
@@ -289,7 +289,7 @@ async function execPayment(web3, computationID, oracleAccount) {
     }
 }
 
-async function returnFunds(web3, computationID, oracleAccount) {
+async function returnFunds(computationID, oracleAccount) {
 
     let ComputationManager = initContract(ComputationManagerJSON);
     let deployedComputationManager = await ComputationManager.deployed();
@@ -329,7 +329,7 @@ async function storeResult(resultOwner, result, oracleAccount) {
 }
 
 async function handleError(msg, oracleAccount) {
-    console.log("[handleError] - Reporting error");
+    console.log("[handleError] - Reporting error ");
     let ResultManager = initContract(ResultManagerJSON);
     let deployedResultManager = await ResultManager.deployed();
     try {
