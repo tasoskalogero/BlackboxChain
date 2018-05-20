@@ -7,9 +7,6 @@ pragma solidity ^0.4.19;
 
 contract ResultRegistry {
 
-    //TODO change UML
-
-
     struct ResultInfo {
         bytes32 resultData;
         bytes32 password;
@@ -28,14 +25,12 @@ contract ResultRegistry {
     //owner address to ResultStruct
     mapping(address => ResultStruct) addressToResult;
 
-    //TODO remove public
-    mapping(address => bool) public accessAllowed;
+    mapping(address => bool) accessAllowed;
 
     function ResultRegistry() public {
         accessAllowed[msg.sender] = true;
     }
 
-    //TODO restrict access from other addresses, only from ResultManager
     function allowAccess(address _address) onlyIfAllowed public {
         accessAllowed[_address] = true;
     }
@@ -51,13 +46,13 @@ contract ResultRegistry {
         return true;
     }
 
-    function getResultCount(address owner) public view returns(uint) {
-        require(msg.sender == owner);
-        return addressToResult[owner].count;
-    }
-
     function getResult(address owner, uint index) public view returns(bytes32, bytes32) {
         require(msg.sender == owner);
         return (addressToResult[owner].results[index].resultData, addressToResult[owner].results[index].password);
+    }
+
+    function getResultCount(address owner) public view returns(uint) {
+        require(msg.sender == owner);
+        return addressToResult[owner].count;
     }
 }

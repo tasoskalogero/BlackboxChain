@@ -82,7 +82,6 @@ contract ComputationRegistry {
         return(idToComputationInfo[_computationID].owner, idToComputationInfo[_computationID].amount);
     }
 
-    //TODO remove - use computations
     function getComputationInfo(bytes32 _computationID) public constant returns(bytes32 _dsID, bytes32 _swID, bytes32 _contID) {
         return(idToComputationInfo[_computationID].datasetID, idToComputationInfo[_computationID].softwareID, idToComputationInfo[_computationID].containerID);
     }
