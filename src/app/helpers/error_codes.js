@@ -12,6 +12,8 @@ errorMessages[620] = "Error fetching software.";
 errorMessages[630] = "Error executing software.";
 errorMessages[640] = "Error encrypting result.";
 errorMessages[650] = "Error writing result on IPFS.";
+errorMessages[670] = "Error writing password on IPFS.";
+errorMessages[660] = "Error decrypting random password.";
 
 
 module.exports = {
