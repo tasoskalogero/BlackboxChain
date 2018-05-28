@@ -1,42 +1,34 @@
 pragma solidity ^0.4.19;
 
 /*
-* Contact to store dataset information.
+* Contact to store dataset resources.
 */
 
 contract DatasetRegistry {
 
     bytes32[] datasetIdentifiers;
 
+    // Dataset data structure
     struct DatasetInfo {
-        string bcdbTxID;
-        string checksum;
-        uint cost;
-        address owner;
+        string bcdbTxID;        // bigchainDB transaction id with the metadata of the dataset
+        string checksum;        // hash of the metadata
+        uint cost;              // cost of using the dataset
+        address owner;          // address of the dataset provider
     }
 
-    modifier onlyIfAllowed() {
-        require(accessAllowed[msg.sender] == true);
-        _;
-    }
-
-    //datasetId => DatasetInfo
     mapping(bytes32 => DatasetInfo) idToDatasetRegistry;
-
     mapping(address => bool) accessAllowed;
-
 
     function DatasetRegistry() public {
         accessAllowed[msg.sender] = true;
     }
 
-
+    // allow address to access contract's methods
     function allowAccess(address _address) onlyIfAllowed public {
         accessAllowed[_address] = true;
     }
 
-
-    // @param BigchainDb Transaction ID, checksum, cost of using the container
+    // RegistryManager contract calls this method to add a new dataset
     function addDataset(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed public returns (bool success) {
         datasetIdentifiers.push(_id);
 
@@ -47,19 +39,22 @@ contract DatasetRegistry {
         return true;
     }
 
-    // @return Array with dataset ids
+    modifier onlyIfAllowed() {
+        require(accessAllowed[msg.sender] == true);
+        _;
+    }
+
+    // returns the identifiers of the datasets
     function getDatasetIDs() public view returns (bytes32[]) {
         return datasetIdentifiers;
     }
 
-    // @param Dataset id
-    // @return DatasetInfo properties
+    // returns the information about the given dataset
     function getDatasetByID(bytes32 _id) public view returns (string _bcdbTxID, string checksum, uint cost, address owner) {
         return (idToDatasetRegistry[_id].bcdbTxID, idToDatasetRegistry[_id].checksum, idToDatasetRegistry[_id].cost, idToDatasetRegistry[_id].owner);
     }
 
-    // @param Dataset id
-    // @return Cost of using dataset, owner of the dataset - used by OrderDb to handle payment
+    // return specific information about the given dataset
     function getPaymentInfo(bytes32 _id) public view returns (uint _cost, address _owner) {
         return (idToDatasetRegistry[_id].cost, idToDatasetRegistry[_id].owner);
     }

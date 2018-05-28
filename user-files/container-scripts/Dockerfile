@@ -12,4 +12,4 @@ COPY getRandomKey.py .
 
 RUN apt-get update \
   && apt-get install -y python3-pip python3-dev \
-  && pip3 install ipfsapi
+  && pip3 install ipfsapi numpy pandas scikit-learn scipy

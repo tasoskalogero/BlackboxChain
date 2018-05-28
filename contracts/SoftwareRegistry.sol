@@ -1,23 +1,19 @@
 pragma solidity ^0.4.19;
 
 /*
-* Contact to store software information.
+* Contact to store software resources.
 */
 
 contract SoftwareRegistry {
 
     bytes32[] softwareIdentifiers;
 
+    // Software data structure
     struct SoftwareInfo {
-        string bcdbTxID;
-        string checksum;
-        uint cost;
-        address owner;
-    }
-
-    modifier onlyIfAllowed () {
-        require(accessAllowed[msg.sender] == true);
-        _;
+        string bcdbTxID;        // bigchainDB transaction id with the metadata of the software
+        string checksum;        // hash of the metadata
+        uint cost;              // cost of using the software
+        address owner;          // address of the software provider
     }
 
     //softwareId => SoftwareInfo
@@ -30,12 +26,12 @@ contract SoftwareRegistry {
         accessAllowed[msg.sender] = true;
     }
 
-
+    // allow an address to access contract's methods
     function allowAccess(address _address) onlyIfAllowed public {
         accessAllowed[_address] = true;
     }
 
-    // @param BigchainDb Transaction ID, checksum, cost of using the container
+    // RegistryManager contract calls this method to add a new software
     function addSoftware(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed  public returns(bool success) {
         softwareIdentifiers.push(_id);
 
@@ -46,20 +42,22 @@ contract SoftwareRegistry {
         return true;
     }
 
+    modifier onlyIfAllowed () {
+        require(accessAllowed[msg.sender] == true);
+        _;
+    }
 
-    // @return Array with software ids
+    // returns the identifiers of the software
     function getSoftwareIDs() public view returns(bytes32[]) {
         return softwareIdentifiers;
     }
 
-    // @param Software id
-    // @return SoftwareInfo properties
+    // returns the information about the given software
     function getSoftwareByID(bytes32 _id) public view returns(string _bcdbTxID, string checksum, uint cost, address owner) {
         return (idToSoftwareInfo[_id].bcdbTxID, idToSoftwareInfo[_id].checksum, idToSoftwareInfo[_id].cost, idToSoftwareInfo[_id].owner);
     }
 
-    // @param Software id
-    // @return Cost of using software, owner of the software - used by OrderDb to handle payment
+    // return specific information about the given software
     function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
         return (idToSoftwareInfo[_id].cost, idToSoftwareInfo[_id].owner);
     }

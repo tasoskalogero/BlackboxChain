@@ -1,26 +1,21 @@
 pragma solidity ^0.4.19;
 
 /*
-* Contact to store container information.
+* Contact to store container resources.
 */
 
 contract ContainerRegistry {
 
     bytes32[] containerIdentifiers;
 
+    // Container data structure
     struct ContainerInfo {
-        string bcdbTxID;
-        string checksum;
-        uint cost;
-        address owner;
+        string bcdbTxID;        // bigchainDB transaction id with the metadata of the container
+        string checksum;        // hash of the metadata
+        uint cost;              // cost of using the container
+        address owner;          // address of the container provider
     }
 
-    modifier onlyIfAllowed () {
-        require(accessAllowed[msg.sender] == true);
-        _;
-    }
-
-    //containerId => ContainerInfo
     mapping(bytes32 => ContainerInfo) idToContainerInfo;
     mapping(address => bool) accessAllowed;
 
@@ -29,11 +24,12 @@ contract ContainerRegistry {
         accessAllowed[msg.sender] = true;
     }
 
+    // allow an address to access contract's methods
     function allowAccess(address _address) onlyIfAllowed public {
         accessAllowed[_address] = true;
     }
 
-    // @param BigchainDb Transaction ID, checksum, cost of using the container
+    // RegistryManager contract calls this method to add a new container
     function addContainer(bytes32 _id, string _bcdbTxID, string _checksum, uint _cost, address _owner) onlyIfAllowed public returns(bool success) {
         containerIdentifiers.push(_id);
 
@@ -44,21 +40,26 @@ contract ContainerRegistry {
         return true;
     }
 
-    // @return Array with container ids
+    modifier onlyIfAllowed () {
+        require(accessAllowed[msg.sender] == true);
+        _;
+    }
+
+    // returns the identifiers of the containers
     function getContainerIDs() public view returns(bytes32[]) {
         return containerIdentifiers;
     }
 
-    // @param Container id
-    // @return ContainerInfo properties
+    // returns the information about the given container
     function getContainerByID(bytes32 _id) public view returns(string _bcdbTxID, string checksum, uint cost, address owner) {
         return (idToContainerInfo[_id].bcdbTxID, idToContainerInfo[_id].checksum, idToContainerInfo[_id].cost, idToContainerInfo[_id].owner);
     }
 
-    // @param Container id
-    // @return Cost of using container, owner of the container- used by OrderDb to handle payment
+    // return specific information about the given container
     function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
         return (idToContainerInfo[_id].cost, idToContainerInfo[_id].owner);
     }
+
+
 }
 
