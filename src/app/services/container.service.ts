@@ -53,9 +53,10 @@ export class ContainerService {
 
                 let containerDockerID = bcdbContainerAsset.containerDockerID;
                 let pubKey = bcdbContainerAsset.pubKey;
+                let containerSpecs = bcdbContainerAsset.specification;
                 let costEther = this.web3.utils.fromWei(bcdbContainerAsset.cost, 'ether');
 
-                let containerToAdd = new Container(containerIDs[i], containerDockerID, pubKey, costEther);
+                let containerToAdd = new Container(containerIDs[i], containerDockerID, pubKey, containerSpecs, costEther);
                 fetchedContainers.push(containerToAdd);
             }
             return fetchedContainers;
@@ -65,10 +66,10 @@ export class ContainerService {
         }
     }
 
-    async addContainer(_containerDockerID, _ipfsHash, publicKey, _cost) {
+    async addContainer(_containerDockerID, _ipfsHash, publicKey, _containerSpecs, _cost) {
         let pubkeyContents = await this.readFile(publicKey);
 
-        let bcdbTxID = await this.bcdbService.insertContainer(_containerDockerID, _ipfsHash, pubkeyContents, _cost);
+        let bcdbTxID = await this.bcdbService.insertContainer(_containerDockerID, _ipfsHash, pubkeyContents, _containerSpecs, _cost);
 
         let checksum = this.computeChecksum(_containerDockerID, _ipfsHash, publicKey, _cost);
         let deployedRegistryManager = await this.RegistryManager.deployed();

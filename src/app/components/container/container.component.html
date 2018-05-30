@@ -9,8 +9,8 @@
     </div>
 
     <div class="form-group row">
-      <label for="ipfsHash" class="col-sm-3 col-form-label">IPFS Hash:</label>
-      <div class="col-sm-5">
+      <label for="ipfsHash" class="col-sm-3 col-form-label">Filesystem IPFS Address:</label>
+      <div class="col-sm-6">
         <input type="text" class="form-control" id="ipfsHash" formControlName="ipfsHash">
       </div>
     </div>
@@ -21,7 +21,12 @@
         <input #pubFileInput type="file" id="publicKey" (change)="fileChange($event)" placeholder="Upload file">
       </div>
     </div>
-
+    <div class="form-group row">
+      <label for="containerSpecs" class="col-sm-3 col-form-label">Container specification:</label>
+      <div class="col-sm-5">
+        <textarea type="text" class="form-control" id="containerSpecs" formControlName="containerSpecs"></textarea>
+      </div>
+    </div>
     <div class="form-group row">
       <label for="cost" class="col-sm-3 col-form-label">Cost (in Ether):</label>
       <div class="col-sm-2">

@@ -13,12 +13,15 @@
                 <button type="button" class="btn btn-light" (click)="downloadPublicKey(container.dockerID)">Download
                 </button>
                 <br/>
+                <br/>
+                <strong>Specification:</strong> {{container.containerSpecification}}
+                <br/>
                 <strong>Cost (ETH): </strong> {{container.cost}}
             </li>
         </ul>
     </div>
-    <p>
-        <button type="button" class="btn btn-link" (click)="getContainers()">Refresh</button>
-    </p>
+    <!--<p>-->
+        <!--<button type="button" class="btn btn-link" (click)="getContainers()">Refresh</button>-->
+    <!--</p>-->
 </div>
 

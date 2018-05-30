@@ -27,7 +27,6 @@ export class ResultService {
             .then(ResultRepo => {
                 this.ResultRegistry = ResultRepo;
             });
-        // this.watchForResult();
     }
 
     async getResults() {
@@ -50,44 +49,10 @@ export class ResultService {
                 let resultToAdd = new Result(dataIpfsHash, passwordIpfsHash);
                 fetchedResults.push(resultToAdd);
             }
-
-            // let results = await deployedResultRegistry.getResultsByAddress.call(this.currentAccount, {from:this.currentAccount});
-            // console.log("Results " + results);
-
-            // for(let i = 0; i < results.length; ++i) {
-            //     // Create IPFS hash from 32 bytes - https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
-            //     let ipfsHash = bs58.encode(Buffer.from('1220' + results[i].slice(2), 'hex'));
-            //     let resultToAdd = new Result(ipfsHash);
-            //     fetchedResults.push(resultToAdd);
-            // }
             return fetchedResults;
         }catch (e) {
             console.log(e);
             console.error('Error occured while getting results.');
         }
-    }
-
-    async watchForResult() {
-        let fetchedResults = [];
-        let latestBlock = await this.web3.eth.getBlockNumber();
-
-        let deployedResultRegistry = await this.ResultRegistry.deployed();
-        console.log('Watching for results...');
-        deployedResultRegistry.ResultAdded({fromBlock: latestBlock}, async (error, event) => {
-            if (error) {
-                console.log(error);
-            } else {
-                if (event.blockNumber !== latestBlock) {
-                    console.log(event.args);
-                    let result = event.args.result;
-                    // Create IPFS hash from 32 bytes - https://digioli.co.uk/2018/03/08/converting-ipfs-hash-32-bytes/
-                    let lengthen =  bs58.encode(Buffer.from('1220' + result.slice(2), 'hex'));
-
-                    fetchedResults.push(lengthen);
-                    // this.setTxStatus("ResultRegistry completed successfully");
-                }
-            }
-            latestBlock = latestBlock + 1;
-        });
     }
 }

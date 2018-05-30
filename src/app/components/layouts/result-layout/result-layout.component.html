@@ -4,11 +4,11 @@
 
     <div>
         <ul id="grouplist" class="list-group">
-            <li style="cursor: pointer" class="list-group-item"
+            <li style="cursor: pointer; width: 80%;" class="list-group-item"
                 *ngFor="let result of fetchedResults">
-                <strong>Data IPFS Hash:</strong> {{result.dataIpfsHash}}
+                <strong>Data IPFS Address:</strong> {{result.dataIpfsHash}}
                 <br/>
-                <strong>Password IPFS Hash:</strong> {{result.passwordIpfsHash}}
+                <strong>One-time password IPFS Address:</strong> {{result.passwordIpfsHash}}
             </li>
         </ul>
     </div>

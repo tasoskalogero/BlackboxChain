@@ -13,6 +13,7 @@ export class Container {
         public ID: string,
         public dockerID: string,
         public publicKey: string,
+        public containerSpecification: string,
         public cost: number,
     ) {
     }

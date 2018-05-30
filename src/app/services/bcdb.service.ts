@@ -67,13 +67,14 @@ export class BcdbService {
         return retrievedTx.id;
     }
 
-    async insertContainer(containerDockerID, ipfsHash, publicKey, cost) {
+    async insertContainer(containerDockerID, ipfsHash, publicKey, containerSpecs, cost) {
         const owner = new bcdb_driver.Ed25519Keypair();
-        console.log("[BCDB] Posting container: " + containerDockerID + " " + publicKey + " " + cost);
+        console.log("[BCDB] Posting container: " + containerDockerID + " " + publicKey + " " + containerSpecs + " " + cost);
         let asset = {
             containerDockerID: containerDockerID,
             ipfsHash: ipfsHash,
             pubKey: publicKey,
+            specification: containerSpecs,
             cost: cost
         };
         let metadata = null;
