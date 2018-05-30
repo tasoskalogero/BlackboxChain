@@ -9,7 +9,7 @@ contract ComputationRegistry {
     bytes32[] public computationIDs;
 
     // The computation can have 3 states
-    enum ComputationStatus {PLACED, SUCCEED, CANCELLED}
+    enum ComputationStatus {PLACED, SUCCEEDED, CANCELLED}
 
     // Computation data structure
     struct ComputationInfo {
@@ -53,7 +53,7 @@ contract ComputationRegistry {
 
     // transfer funds to the corresponding providers after a successful computation
     function computationSuccess(bytes32 _computationID) onlyIfPlaced(_computationID) onlyIfAllowed public returns (bool success) {
-        idToComputationInfo[_computationID].status = ComputationStatus.SUCCEED;
+        idToComputationInfo[_computationID].status = ComputationStatus.SUCCEEDED;
         return true;
     }
 

@@ -8,6 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 import sys
+
 if sys.version_info[0] < 3: 
     from StringIO import StringIO
 else:
@@ -18,17 +19,6 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument("dataset", help="preprosessed dataset file", type=str)
 args = parser.parse_args()
 
-# Function importing Dataset
-def importdata():
-    balance_data = pd.read_csv('Preprocessed.csv', sep= ',', header = 0)
-     
-    # Printing the dataswet shape
-#    print ("Dataset Lenght: ", len(balance_data))
-#    print ("Dataset Shape: ", balance_data.shape)
-     
-    # Printing the dataset obseravtions
-    return balance_data
- 
 # Function to split the dataset
 def splitdataset(balance_data):
  
@@ -36,9 +26,6 @@ def splitdataset(balance_data):
     X = balance_data.values[:, 0:24]
     Y = balance_data.values[:, -1]
     
-    #print(X)
-    #print(Y)
- 
     # Spliting the dataset into train and test
     X_train, X_test, y_train, y_test = train_test_split( 
     X, Y, test_size = 0.3, random_state = 100)
@@ -71,7 +58,6 @@ def tarin_using_entropy(X_train, X_test, y_train):
 # Function to make predictions
 def prediction(X_test, clf_object):
  
-    # Predicton on test with giniIndex
     y_pred = clf_object.predict(X_test)
     return y_pred
      
@@ -93,25 +79,13 @@ def main():
     # Building Phase
     TESTDATA = StringIO(args.dataset)
     data = pd.read_csv(TESTDATA, sep= ',', header = 0)
-    # data = importdata()
     X, Y, X_train, X_test, y_train, y_test = splitdataset(data)
     
-    # clf_gini = train_using_gini(X_train, X_test, y_train)
     clf_entropy = tarin_using_entropy(X_train, X_test, y_train)
      
-    # Operational Phase
-    #print("Results Using Gini Index:")
-     
-    # Prediction using gini
-    # y_pred_gini = prediction(X_test, clf_gini)
-    # print(y_pred_gini)
-    # cal_accuracy(y_test, y_pred_gini)
-     
-    #print("Results Using Entropy:")
     # Prediction using entropy
     y_pred_entropy = prediction(X_test, clf_entropy)
     print(y_pred_entropy)
-    #cal_accuracy(y_test, y_pred_entropy)
      
      
 # Calling main function
