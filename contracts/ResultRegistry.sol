@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contact to store computation results.
+* The ResultRegistry contract.
+* Store computation results.
 */
-
 contract ResultRegistry {
 
     // Result data structure

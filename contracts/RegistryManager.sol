@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contain the logic for the registry contracts.
+* The RegistrytManager contract.
+* Contains the logic for the registry contracts.
 */
-
 import "./SoftwareRegistry.sol";
 import "./DatasetRegistry.sol";
 import "./ContainerRegistry.sol";
@@ -40,5 +39,4 @@ contract RegistryManager {
         containerRegistry.addContainer(id, _bcdbTxID, _checksum, _cost, msg.sender);
         return true;
     }
-
 }

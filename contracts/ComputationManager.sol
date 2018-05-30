@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contain the logic for the ComputationRegistry contract.
+* The ComputationManager contract.
+* Contains the logic for the ComputationRegistry contract.
 */
-
 import "./ComputationRegistry.sol";
 import "./DatasetRegistry.sol";
 import "./SoftwareRegistry.sol";
@@ -101,6 +100,4 @@ contract ComputationManager {
         var (cont_cost, cont_owner) = containerRegistry.getPaymentInfo(_containerID);
         return (cont_cost, cont_owner);
     }
-
-
 }

@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contain the logic for the ResultRegistry contract.
+* The ResultManager contract.
+* Contains the logic for the ResultRegistry contract.
 */
-
 import "./ResultRegistry.sol";
 
 contract ResultManager {

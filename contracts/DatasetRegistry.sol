@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contact to store dataset resources.
+* The DatasetRegistryContract.
+* Store dataset resources.
 */
-
 contract DatasetRegistry {
 
     bytes32[] datasetIdentifiers;

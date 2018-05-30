@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contact to store computations.
+* The ComputationRegistry contract.
+* Store computations.
 */
-
 contract ComputationRegistry {
 
     bytes32[] public computationIDs;
@@ -82,5 +81,4 @@ contract ComputationRegistry {
     function getComputationPaymentInfo(bytes32 _computationID) public constant returns(address owner, uint amount) {
         return(idToComputationInfo[_computationID].owner, idToComputationInfo[_computationID].amount);
     }
-
 }

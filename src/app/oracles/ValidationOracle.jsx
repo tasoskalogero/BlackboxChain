@@ -1,3 +1,6 @@
+/**
+ * Trusted third-party oracle.
+ */
 const Web3 = require("web3");
 const http = require("http");
 const path = require("path");
@@ -5,34 +8,24 @@ const bs58 = require('bs58');
 const contract = require("truffle-contract");
 const ipfsAPI = require('ipfs-api');
 let ipfs = ipfsAPI('/ip4/127.0.0.1/tcp/5001');
-
-
 const ComputationManagerJSON = require(path.join(__dirname, "../../../build/contracts/ComputationManager.json"));
 const ComputationRegistryJSON = require(path.join(__dirname, "../../../build/contracts/ComputationRegistry.json"));
-
 const ResultManagerJSON = require(path.join(__dirname, "../../../build/contracts/ResultManager.json"));
-
 const errors = require("../helpers/error_codes.js");
-
 let dataset_methods = require('../helpers/dataset_manager');
 let getDatasetByID = dataset_methods.getDatasetByID;
 let checkDataset = dataset_methods.checkDataset;
-
 let software_methods = require('../helpers/software_manager');
 let getSoftwareByID = software_methods.getSoftwareByID;
 let checkSoftware = software_methods.checkSoftware;
-
 let container_methods = require('../helpers/container_manager');
 let getContainerByID = container_methods.getContainerByID;
 let getDockerContainerID = container_methods.getDockerContainerID;
 let getContainerStatus = container_methods.getContainerStatus;
-
-
 const ERROR_STATUS = "FAILURE";
 
 function initWeb3() {
     let web3;
-
     console.log("Initializing web3");
     if (typeof web3 !== "undefined") {
         web3 = new Web3(web3.currentProvider);
@@ -47,7 +40,7 @@ function initContract(artifact) {
     let MyContract = contract(artifact);
     MyContract.setProvider(web3.currentProvider);
 
-    //dirty hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
+    //hack for web3@1.0.0 support for localhost testrpc, see https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
     if (typeof MyContract.currentProvider.sendAsync !== "function") {
         MyContract.currentProvider.sendAsync = function () {
             return MyContract.currentProvider.send.apply(MyContract.currentProvider, arguments);
@@ -55,26 +48,23 @@ function initContract(artifact) {
     }
     return MyContract;
 }
-
+/**
+ * Watch for new computations.
+ */
 async function watchComputationEvents(web3, oracleAccount) {
     console.log("Listening computation events...");
 
     let latestBlock = await web3.eth.getBlockNumber();
-
     let ComputationRegistry = initContract(ComputationRegistryJSON);
     let deployedComputationRegistry = await ComputationRegistry.deployed();
-
     let ComputationManager = initContract(ComputationManagerJSON);
     let deployedComputationManager = await ComputationManager.deployed();
-
     deployedComputationManager.ComputationAdded({fromBlock: latestBlock}, async (error, event) => {
         if (error) {
             console.log(error);
         } else {
             if (event.blockNumber !== latestBlock) {
-                console.log("EVENT Received: ", event.args);
-
-                //TODO can get ids from computation registry?? event in ComputationManager can return only the computationID
+                console.log("[ValidationOracle] - new event received: ", event.args);
                 let computationID = event.args.computationID;
                 let userPubKeyIpfs = event.args.userPubKeyIpfsHash;
                 let softwareID = event.args.softwareID;
@@ -83,77 +73,62 @@ async function watchComputationEvents(web3, oracleAccount) {
                 let computationInfo = await deployedComputationRegistry.idToComputationInfo.call(computationID, {from: oracleAccount});
                 let amountInComputation = computationInfo[5].toNumber();
 
+                //convert IPFS address to bytes32
                 const convert = (short) => bs58.encode(Buffer.from('1220' + short.slice(2), 'hex'));
                 let userPubKeyIpfsHash = convert(userPubKeyIpfs);
 
-                // CHECK IF AMOUNT SENT IN CONTRACT IS EQUAL TO THE AMOUNT OF THE SELECTED SOFTWARE, DATASET, CONTAINER
                 let enoughFunds = await verifyFunds(softwareID, datasetID, containerID, amountInComputation, oracleAccount);
 
-                let datasetMatch = await checkDataset(web3, datasetID, oracleAccount);
-                let softwareMatch = await checkSoftware(web3, softwareID, oracleAccount);
+                let datasetMatch = await checkDataset(web3, datasetID, oracleAccount);          // dataset checksum verification
+                let softwareMatch = await checkSoftware(web3, softwareID, oracleAccount);       // software checksum verification
 
                 let containerDockerID = await getDockerContainerID(web3, containerID, oracleAccount);
-                let containerAlive = await getContainerStatus(containerDockerID);
+                let containerAlive = await getContainerStatus(containerDockerID);               // ping container
 
-                console.log(enoughFunds, datasetMatch[0], softwareMatch[0], containerAlive);
                 if (enoughFunds && datasetMatch[0] && softwareMatch[0] && containerAlive) {
-                    console.log("-------------- COMPUTATION VALID --------------");
+                    console.log("[ValidationOracle] - compuation is valid, proceed");
 
                     let ds = await getDatasetByID(web3, datasetID, oracleAccount);
                     let randomKeyipfsHash = ds.dsRandomKeyipfsHash;
-                    // let dsRandKeyContents = (await ipfs.files.cat(randomKeyipfsHash)).toString('utf8');
 
                     let userPubKeyContents = (await ipfs.files.cat(userPubKeyIpfsHash)).toString('utf8');
-                    // CREATE EXEC INSTANCE
+                    // create exec command for container
                     let execResult = await createExecInstance(containerDockerID, datasetMatch[1], softwareMatch[1], userPubKeyContents, randomKeyipfsHash);
 
                     if (execResult[0] === "FAILURE") {
-
                         // Cannot create exec instance
                         console.log("[Error creating exec instance.");
-
                         let msg = "Error before execution.";
                         await handleError(msg, oracleAccount);
                         await returnFunds(computationID, oracleAccount);
                         console.log("Funds returned");
                     } else {
                         let exec_id = JSON.parse(execResult[1]).Id;
-
-                        console.log("Execute exec_id: ", exec_id);
-                        // EXECUTE
+                        // run exec command in container
                         let result = await runExec(exec_id);
-
                         result = result.replace(/[\u0001\u0000\u0004^]/g, "");
                         result = result.trim();
-
                         let error_codes_array = errors.getErrorCodes();
-                        if (error_codes_array.includes(parseInt(result))) {
+                        if (error_codes_array.includes(parseInt(result))) {         // on error
                             let error_msg = errors.getErrorMessage(parseInt(result));
-
-                            console.log(error_msg);
+                            console.log("[ValidationOracle] - ", error_msg);
                             await handleError(error_msg, oracleAccount);
                             await returnFunds(computationID, oracleAccount);
                             console.log("Funds returned");
                         } else {
                             result = result.replace(/\//g, ""); // remove '/' from ipfs address result
-                            console.log("Final result received", result);
+                            console.log("[ValidationOracle] - Result received: ", result);
 
                             let successPayment = await execPayment(computationID, oracleAccount);
-
-                            // computation succeed - funds transferred to providers
-                            if (successPayment === 0) {
-
+                            if (successPayment === 0) {                                // computation succeed - funds transferred to providers
                                 let resultOwner = computationInfo[4];
-
                                 let successStore = await storeResult(resultOwner, result, oracleAccount);
-
                                 if (successStore === 1) {
                                     await handleError("Failed to store result.", oracleAccount);
                                     await returnFunds(computationID, oracleAccount);
                                     console.log("Failed to store the result for the computation ", computationID, ". Funds returned.");
                                 }
-                                // Computation failed to fulfill - funds returned to buyer
-                            } else {
+                            } else {                        // Computation failed to fulfill - funds returned to recipient
                                 await handleError("Failed to fulfill computation.", oracleAccount);
                                 await returnFunds(computationID, oracleAccount);
                                 console.log("Failed to fulfill the computation ", computationID, ". Funds returned.");
@@ -172,14 +147,11 @@ async function watchComputationEvents(web3, oracleAccount) {
         }
     });
 }
-
+/**
+ * Create a docker exec instance.
+ */
 async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyIPFS) {
     console.log("[CreateExecInstance] ", containerID, datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyIPFS);
-
-    // let b64Encoded = Buffer.from(dsRandKeyContents).toString('base64');
-    // console.log(b64Encoded);
-    // console.log(Buffer.from(b64Encoded, 'base64').toString());
-
     let commands = ["./wrapper.sh", datasetIpfsHash, softwareIPFSHash, userPubKeyContents, dsRandKeyIPFS];
     let bodyCmd = JSON.stringify({
         Cmd: commands,
@@ -199,8 +171,6 @@ async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash
         let post_req = http.request(post_options, function (res) {
             res.setEncoding("utf8");
             let status = res.statusCode;
-            console.log("STATUS: " + status);
-
             let rawData = "";
             res
                 .on("data", function (chunk) {
@@ -208,7 +178,7 @@ async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash
                     console.log("Response: " + chunk);
                 })
                 .on("end", () => {
-                    console.log("RESULT = ", rawData);
+                    console.log("Result = ", rawData);
                     let error_codes_array = errors.getErrorCodes();
 
                     if (error_codes_array.includes(parseInt(status))) {
@@ -219,7 +189,7 @@ async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash
                     }
                 })
                 .on("error", e => {
-                    console.log("ERROR", e);
+                    console.log("Error", e);
                     resolve(1, "Failed to create exec command.");
                 });
         });
@@ -227,9 +197,10 @@ async function createExecInstance(containerID, datasetIpfsHash, softwareIPFSHash
         post_req.end();
     })
 }
-
+/**
+ * Run a docker exec instance.
+ */
 async function runExec(execID) {
-
     let bodyCmd = JSON.stringify({});
     let post_options = {
         socketPath: "/var/run/docker.sock",
@@ -240,20 +211,15 @@ async function runExec(execID) {
             "Content-Length": Buffer.byteLength(bodyCmd)
         }
     };
-
     return new Promise(resolve => {
         let post_req = http.request(post_options, function (res) {
-            // res.setEncoding("utf8");
             let status = res.statusCode;
             console.log("STATUS: " + status);
-
             let output = "";
-
             res.on("data", function (chunk) {
                 console.log("Response:" + chunk);
                 output += chunk;
             });
-
             res.on("end", () => {
                 console.log("RESULT:", output);
                 if (status === 200)
@@ -261,7 +227,6 @@ async function runExec(execID) {
                 else
                     resolve(status);
             });
-
             res.on("error", e => {
                 console.log("ERROR", e);
                 resolve(1, "Failed to run exec command.");
@@ -271,11 +236,12 @@ async function runExec(execID) {
         post_req.end();
     })
 }
-
+/**
+ * Complete payment.
+ */
 async function execPayment(computationID, oracleAccount) {
     let ComputationManager = initContract(ComputationManagerJSON);
     let deployedComputationManager = await ComputationManager.deployed();
-
     try {
         let success = await deployedComputationManager.computationSucceed(computationID, {
             from: oracleAccount,
@@ -288,19 +254,21 @@ async function execPayment(computationID, oracleAccount) {
         return 1;
     }
 }
-
+/**
+ * Return money to recipient.
+ */
 async function returnFunds(computationID, oracleAccount) {
-
     let ComputationManager = initContract(ComputationManagerJSON);
     let deployedComputationManager = await ComputationManager.deployed();
-
     try {
         let success = await deployedComputationManager.computationFailed(computationID, {from: oracleAccount});
     } catch (e) {
         console.log(e);
     }
 }
-
+/**
+ * Save result sto contract.
+ */
 async function storeResult(resultOwner, result, oracleAccount) {
     console.log("[storeResult] - Storing result...", result);
     //result is a space separated string of the dataset IPFS hash and the random key IPFS hash
@@ -310,7 +278,6 @@ async function storeResult(resultOwner, result, oracleAccount) {
     let datasetIpfsAddress = ipfsHashes[0];
     let passwordIpfsAddress = ipfsHashes[1];
 
-
     let shortDataResult = '0x' + bs58.decode(datasetIpfsAddress).slice(2).toString('hex');
     console.log(shortDataResult);
     let shortPassword = '0x' + bs58.decode(passwordIpfsAddress).slice(2).toString('hex');
@@ -318,7 +285,6 @@ async function storeResult(resultOwner, result, oracleAccount) {
 
     let ResultManager = initContract(ResultManagerJSON);
     let deployedResultManager = await ResultManager.deployed();
-
     try {
         let success = await deployedResultManager.addResultInfo(resultOwner ,shortDataResult, shortPassword, {from: oracleAccount, gas: 3000000});
         console.log("[storeResult] - Result stored");
@@ -327,7 +293,9 @@ async function storeResult(resultOwner, result, oracleAccount) {
         return 1;
     }
 }
-
+/**
+ * Handle errors in case of a failed computation.
+ */
 async function handleError(msg, oracleAccount) {
     console.log("[handleError] - Reporting error ");
     let ResultManager = initContract(ResultManagerJSON);
@@ -338,9 +306,11 @@ async function handleError(msg, oracleAccount) {
     } catch (e) {
         return 1;
     }
-
 }
-
+/**
+ * Check if amount sent in contract is equal to the usage cost of
+ * the selected software + dataset + container
+ */
 async function verifyFunds(softwareID, datasetID, containerID, fundsInComputation, oracleAccount) {
     let sw = await getSoftwareByID(web3, softwareID, oracleAccount);
     let swCost = sw.cost;
@@ -351,14 +321,10 @@ async function verifyFunds(softwareID, datasetID, containerID, fundsInComputatio
     let container = await getContainerByID(web3, containerID, oracleAccount);
     let containerCost = container.cost;
     let expectedCost = +swCost + +dsCost + +containerCost;
-
     return expectedCost === fundsInComputation;
-
 }
 
-
 let web3 = initWeb3();
-
 web3.eth.getAccounts().then(accounts => {
     let oracleAccount = accounts[9];
     watchComputationEvents(web3, oracleAccount).then();

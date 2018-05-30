@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contact to store container resources.
+* The ContainerRegistryContract.
+* Store container resources.
 */
-
 contract ContainerRegistry {
 
     bytes32[] containerIdentifiers;
@@ -59,7 +58,5 @@ contract ContainerRegistry {
     function getPaymentInfo(bytes32 _id) public view returns(uint _cost, address _owner) {
         return (idToContainerInfo[_id].cost, idToContainerInfo[_id].owner);
     }
-
-
 }
 

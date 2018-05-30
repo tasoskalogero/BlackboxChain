@@ -1,9 +1,8 @@
 pragma solidity ^0.4.19;
-
 /*
-* Contact to store software resources.
+* The SoftwareRegistry contract.
+* Store software resources.
 */
-
 contract SoftwareRegistry {
 
     bytes32[] softwareIdentifiers;
@@ -18,8 +17,6 @@ contract SoftwareRegistry {
 
     //softwareId => SoftwareInfo
     mapping(bytes32 => SoftwareInfo) idToSoftwareInfo;
-
-    //access is allowed to creator and RegistryManager
     mapping(address => bool) accessAllowed;
 
     function SoftwareRegistry() public {
