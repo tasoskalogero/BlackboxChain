@@ -112,7 +112,7 @@ encrypt the one-time password with the container's public key
 #### I want to..
 
 ##### Perform a Computation
-From the menu on top, click on the `Computation` tab and then:
+From the menu on top, click `Computation` and then:
 
 1) Upload your public key
 
@@ -127,7 +127,7 @@ Click `Run` in order to start the computation
 ##### Get the result
 The result is encrypted with a one-time password, and the password is encrypted with the user's public key.
 
-To get the computation output, from the top menu, click `Results` tab and then:
+To get the computation output, from the top menu, click `Results` and then:
 
 1) Run `getResult.sh` (helper_scripts) and give the displayed IPFS addresses
 
