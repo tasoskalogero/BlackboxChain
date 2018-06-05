@@ -1,87 +1,136 @@
 <div class="jumbotron">
   <h1 class="display-4">{{title}}</h1>
-  <p class="lead">An application for resource-intensive computations using Ethereum.</p>
+  <p class="lead">An application for resource-intensive computations using Ethereum, BigchainDB and IPFS.</p>
   <hr class="my-4">
   <p>A secure resource-intensive order_manager managed by Ethereum smart contracts and executed on Docker containers.</p>
 
-  <h3>Software provider</h3>
-  <p>From the menu on top, click on the <strong>Software</strong> tab and enter the details. Then click <strong>Save</strong>
-  to make your software available.
-  </p>
-  Required:
-  <ul>
-  <li>
-      Filename
-  </li>
-  <li>
-    IPFS address
-  </li>
-  <li>
-    Input parameter description
-  </li>
+  <h3>As a Container provider</h3>
+  <ol>
     <li>
-      Software specification
+      Start a container
     </li>
-  </ul>
+    <li>
+      Attach to the running container and run the <code>generateKeys.sh</code> script
+    </li>
+    <li>
+      Exit from the container and copy the generated public key in the host machine locally
+    </li>
+    <li>
+      Add the container's filesystem on IPFS
+    </li>
+    <li>
+      Using the BlackboxChain dapp store the necessary information on the blockchain/BigchainDB
+    </li>
+  </ol>
 
-  <h3>Data provider</h3>
-  <p>From the menu on top, click on the <strong>Datasets</strong> tab and enter the details. Then click <strong>Save</strong>
-    make your dataset available for purchase.
-  </p>
-    Required:
-  <ul>
-    <li>
-      The dataset file encrypted with the public key of the container that will perform the order_manager.
-      <br/>
-      You can download the public key of a container on the <strong>Computation</strong> page at the available containers.
-    </li>
-    <li>
-      Name of the dataset
-    </li>
-    <li>
-      Dataset specification
-    </li>
-    <li>
-      Cost in Ether
-    </li>
-  </ul>
-
-  <h3>Container provider</h3>
-
-  <p>From the menu on top, click on the <strong>Containers</strong> tab and enter the details. Then click <strong>Save</strong>
-    to make your docker container available.</p>
-
-  Required:
+  <strong>Required:</strong>
   <ul>
     <li>
       Docker container ID
     </li>
     <li>
-      Public key of docker
+      IPFS address of container's filesystem
     </li>
     <li>
-      Cost in Ether
+      Container's public key
+    </li>
+    <li>
+      Container's specification
+    </li>
+    <li>
+      Usage cost (in Ether)
     </li>
   </ul>
 
-  <h3>Computation</h3>
+  <h3>As a Software provider</h3>
+  <ol>
+    <li>
+      Add software on IPFS
+    </li>
+    <li>
+      Using the BlackboxChain dapp store the necessary information on the blockchain/BigchainDB
+    </li>
+  </ol>
+
+  <strong>Required:</strong>
+  <ul>
+    <li>
+      Software filename
+    </li>
+    <li>
+      IPFS address of software
+    </li>
+    <li>
+      Input parameter specification
+    </li>
+    <li>
+      Software specification
+    </li>
+    <li>
+      Usage cost (in Ether)
+    </li>
+  </ul>
+
+  <h3>As a Dataset provider</h3>
+
+  <ol>
+    <li>
+      Run <code>randomKeyGen.sh</code> to generate a one-time password
+    </li>
+    <li>Run <code>generateKeys.sh</code> to generate a private/public key pair</li>
+    <li>
+      Run <code>encryptLargeFile.sh</code> to encrypt the dataset with the one-time password
+    </li>
+    <li>
+      Download a container's public key using the BlackboxChain dapp and run <code>encryptRandomKey.sh</code> to
+      encrypt the one-time password with the container's public key
+    </li>
+    <li>
+      Add the two encrypted files on IPFS
+    </li>
+    <li>
+      Using the BlackboxChain dapp store the necessary information on the blockchain/BigchainDB
+    </li>
+  </ol>
+
+  <strong>Required:</strong>
+  <ul>
+    <li>
+      Name of the dataset
+    </li>
+    <li>
+      IPFS address of the enrcypted dataset
+    </li>
+    <li>IPFS address of the encrypted one-time password</li>
+    <li>Dataset specification</li>
+    <li>Usage cost (in Ether)</li>
+  </ul>
+
+<h2>I want to..</h2>
+  <h4>Perform a Computation</h4>
   <p>From the menu on top, click on the <strong>Computation</strong> tab and then:</p>
   <ol>
     <li>
-      Upload your public key. It will be used by the container to encrypt the result.
+      Upload your public key
     </li>
-    <li>
-      Select the algorithm you want to run.
-    </li>
-    <li>
-      Select the datase you want to use.
-    </li>
-    <li>
-      Select the container that will perform the order_manager.
-    </li>
+    <li>Select a software</li>
+    <li>Select a dataset</li>
+    <li>Select a container that will perform the computation</li>
   </ol>
-  <p>Click <strong>Run</strong> in order_manager to start the order_manager.</p>
 
-  <h4>Result</h4>
-  The result is an IPFS address and it will be displayed in the <strong>Log</strong> area at the bottom of the <strong>Computation</strong> page.
+  <p>Click <code>Run</code> in order to start the computation</p>
+
+  <h4>Get the result</h4>
+
+  <p>The result is encrypted with a one-time password, and the password is encrypted with the user's public key.</p>
+
+  <p>To get the computation output, from the top menu, click <strong>Results</strong> tab and then:</p>
+
+  <ol>
+    <li>
+      Run <code>getResult.sh</code> and give the displayed IPFS addresses
+    </li>
+    <li>The result is available in the <code>result.bin </code> file</li>
+  </ol>
+
 </div>

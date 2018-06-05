@@ -82,7 +82,7 @@ Prerequisites:
 
 * Usage cost (in Ether)
    
-#### As a Data provider
+#### As a Dataset provider
 
 1) Run `randomKeyGen.sh` (helper_scripts) to generate a one-time password
 
@@ -131,4 +131,4 @@ To get the computation output, from the top menu, click `Results` tab and then:
 
 1) Run `getResult.sh` (helper_scripts) and give the displayed IPFS addresses
 
-2) The result is availabe in the `result.bin` file
+2) The result is available in the `result.bin` file
