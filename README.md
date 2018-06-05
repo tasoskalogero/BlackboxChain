@@ -2,56 +2,133 @@
 
 # BlackboxChain
 
-#### Start the test network
+Prerequisites:
+
+[Angular CLI](https://cli.angular.io/)
+
+[NodeJS](https://nodejs.org/en/)
+
+[Truffle](http://truffleframework.com/)
+
+[Metamask](https://metamask.io/)
+
+[IPFS](https://ipfs.io/)
+
+[Docker](https://www.docker.com/)
+
+#### Start the Ethereum blockchain test network
 * `truffle dev`
 
 #### Compile and migrate the contracts
 * `compile && migrate`
 
-#### Run the app using Angular CLI:
+#### Run the dapp using the Angular CLI:
 * First run  `npm install`
-* Then `ng serve --open`
+* Then run `ng serve --open`
+* Navigate to `src/app/oracles` and run `node ValidationOracle.jsx` to start the oracle service
 
-#### Software provider
+### BigchainDB Testnet Credentials
+* api_url: https://test.bigchaindb.com/api/v1/
+* app_id: `c2c9c771`
+* app_key: `28b8fde912535489c425c2e266030b0e`
 
-From the menu on top, click on the `Software` tab and enter the details. Then click `Save`
-to make your software available.
+### Configure Metamask to connect to Truffle Blockchain network
+* Custom RPC: http://localhost:9545 
+* Copy the mnemonic phrase from Truffle to metamask
 
-Required:
-* Filename
-* IPFS address
-* Input parameter description
-* Software description
-   
-#### Data provider
+### Workflow
 
-From the menu on top, click on the `Datasets` tab and enter the details. Then click `Save` 
-make your dataset available for purchase.
 
-Required:
-* The dataset file encrypted with the public key of the container that will perform the computation.
-    *   You can download the public key of a container on the `Computation` page at the available containers.
-* Name of the dataset
-* Description of the dataset
-* Cost in Ether 
+#### As a Container provider
 
-#### Container provider
+1) Start a container
 
-From the menu on top, click on the `Containers` tab and enter the details. Then click `Save`
-to make your docker container available.
+2) Attach to the running container and run the `generateKeys.sh` script
 
-Required:
+3) Exit from the container and copy the generated public key in the host machine locally
+
+4) Add the container's filesystem on IPFS
+
+5) Using the BlackboxChain dapp store the necessary information on the blockchain/BigchainDB
+
+**Required:**
+
 * Docker container ID
-* Public key of docker 
-* Cost in Ether
+
+* IPFS address of container's filesystem
+
+* Container's public key
+
+* Container's specification
+
+* Usage cost (in Ether)
 
 
-#### Computation
+#### As a Software provider
+
+1) Add software on IPFS
+
+2) Using the BlackboxChain dapp store the necessary information on the blockchain/BigchainDB
+
+**Required:**
+
+* Software filename
+
+* IPFS address of software
+
+* Input parameter specification
+
+* Software specification
+
+* Usage cost (in Ether)
+   
+#### As a Data provider
+
+1) Run `randomKeyGen.sh` (helper_scripts) to generate a one-time password
+
+2) Run `generateKeys.sh` (helper_scripts) to generate a private/public key pair
+
+3) Run `encryptLargeFile.sh` (helper_scripts) to encrypt the dataset with the one-time password
+
+4) Download a container's public key using the BlackboxChain dapp and run `encryptRandomKey.sh` (helper_scripts) to 
+encrypt the one-time password with the container's public key
+
+5) Add the two encrypted files on IPFS
+
+6) Using the BlackboxChain dapp store the necessary information on the blockchain/BigchainDB
+
+**Required:**
+
+* Name of the dataset
+
+* IPFS address of the enrcypted dataset
+
+* IPFS address of the encrypted one-time password
+
+* Dataset specification
+
+* Usage cost (in Ether)
+
+#### I want to..
+
+##### Perform a Computation
 From the menu on top, click on the `Computation` tab and then:
-1) Upload your public key. It will be used by the container to encrypt the result.
-2) Select the algorithm you want to run.
-3) Select the datase you want to use.
-4) Select the container that will perform the computation.
-Click `Run` in order to start the computation. 
 
-The result is an IPFS address and it will be displayed in the `Log` area at the bottom of the `Computation` page.
+1) Upload your public key
+
+2) Select a software
+
+3) Select a dataset
+
+4) Select a container that will perform the computation
+
+Click `Run` in order to start the computation
+
+##### Get the result
+The result is encrypted with a one-time password, and the password is encrypted with the user's public key.
+
+To get the computation output, from the top menu, click `Results` tab and then:
+
+1) Run `getResult.sh` (helper_scripts) and give the displayed IPFS addresses
+
+2) The result is availabe in the `result.bin` file
