@@ -1,8 +1,12 @@
-
-
 # BlackboxChain
 
-Prerequisites:
+A system of smart contracts that orchestrate the data and software acquisition, enforce the execution of the software over the given data into a blockchain-unrelated component and make the computation output available to the recipient.
+
+The project was implemented as part of my Master’s Thesis in Informatics at the Technical University of Munich (TUM). 
+
+More information [here](https://github.com/tasoskalogero/tum-thesis-report).
+
+## Prerequisites:
 
 [Angular CLI](https://cli.angular.io/)
 
@@ -16,13 +20,13 @@ Prerequisites:
 
 [Docker](https://www.docker.com/)
 
-#### Start the Ethereum blockchain test network
+### Start the Ethereum blockchain test network
 * `truffle dev`
 
-#### Compile and migrate the contracts
+### Compile and migrate the contracts
 * `compile && migrate`
 
-#### Run the dapp using the Angular CLI:
+### Run the dapp using the Angular CLI:
 * First run  `npm install`
 * Then run `ng serve --open`
 * Navigate to `src/app/oracles` and run `node ValidationOracle.jsx` to start the oracle service
